@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>贪吃车</title>
+  <style>
+    :root { --ink:#162639; --blue:#2976df; --yellow:#ffc928; --road:#34475a; --grass:#a9df76; }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; overflow:hidden; font-family:"Microsoft YaHei",system-ui,sans-serif; color:var(--ink); background:linear-gradient(135deg,#e2f7c7,#a6d7ef); }
+    .game { width:min(94vw,680px); text-align:center; padding:20px; }
+    h1 { margin:0; font-size:clamp(31px,7vw,52px); letter-spacing:5px; color:#173653; text-shadow:0 3px #fff; }
+    .sub { margin:6px 0 14px; font-size:14px; opacity:.75; }
+    .bar { display:flex; justify-content:space-between; align-items:center; margin:0 auto 10px; max-width:590px; }
+    .score { background:#fff; border-radius:99px; padding:8px 18px; font-weight:bold; box-shadow:0 3px 0 #8bb972; }
+    button { border:0; font:inherit; font-weight:bold; cursor:pointer; color:white; background:#ec604e; padding:9px 17px; border-radius:99px; box-shadow:0 3px 0 #ad3932; }
+    button:active { transform:translateY(2px); box-shadow:0 1px 0 #ad3932; }
+    .board-wrap { position:relative; max-width:590px; margin:auto; border:8px solid #fff; border-radius:19px; overflow:hidden; box-shadow:0 10px 30px #477a6980; }
+    canvas { display:block; width:100%; aspect-ratio:1; background:var(--grass); touch-action:none; }
+    .overlay { position:absolute; inset:0; display:grid; place-items:center; padding:30px; background:#18324bbb; color:#fff; }
+    .panel { background:#fff; color:var(--ink); border-radius:20px; padding:22px 28px; box-shadow:0 8px 0 #19384c; }
+    .panel h2 { margin:0 0 8px; } .panel p { margin:0 0 17px; font-size:14px; }
+    .hidden { display:none; }
+    .controls { display:grid; grid-template-columns:repeat(3,56px); grid-template-rows:repeat(2,48px); justify-content:center; gap:7px; margin:17px auto 0; }
+    .controls button { padding:0; background:#2976df; box-shadow:0 3px 0 #1955a8; font-size:23px; }
+    .controls button:nth-child(1) { grid-column:2; } .controls button:nth-child(2) { grid-column:1; grid-row:2; } .controls button:nth-child(3) { grid-column:2; grid-row:2; } .controls button:nth-child(4) { grid-column:3; grid-row:2; }
+    .tip { margin:14px 0 0; font-size:13px; opacity:.7; }
+  </style>
+</head>
+<body>
+  <main class="game">
+    <h1>贪吃车</h1>
+    <p class="sub">撞上摩托车，让你的小火车越来越长！</p>
+    <div class="bar"><div class="score">车厢：<span id="score">3</span></div><button id="restart">重新出发</button></div>
+    <div class="board-wrap">
+      <canvas id="board" width="600" height="600" aria-label="贪吃车游戏画面"></canvas>
+      <div class="overlay hidden" id="overlay"><div class="panel"><h2>发生追尾！</h2><p>本次列车共有 <b id="final-score">3</b> 节车厢</p><button id="play-again">再来一局</button></div></div>
+    </div>
+    <div class="controls" aria-label="方向控制"><button data-dir="up">↑</button><button data-dir="left">←</button><button data-dir="down">↓</button><button data-dir="right">→</button></div>
+    <p class="tip">使用方向键、WASD 或下方按钮驾驶</p>
+  </main>
+  <script>
+    const canvas = document.querySelector('#board'), ctx = canvas.getContext('2d');
+    const scoreEl = document.querySelector('#score'), overlay = document.querySelector('#overlay');
+    const cells = 20, size = canvas.width / cells;
+    let train, bike, dir, nextDir, timer, alive;
+    const dirs = { up:[0,-1], down:[0,1], left:[-1,0], right:[1,0] };
+    function randomBike() { let p; do { p={x:Math.floor(Math.random()*cells),y:Math.floor(Math.random()*cells)}; } while(train.some(t=>t.x===p.x&&t.y===p.y)); return p; }
+    function start() { train=[{x:10,y:10},{x:9,y:10},{x:8,y:10}]; dir=[1,0]; nextDir=[1,0]; bike=randomBike(); alive=true; scoreEl.textContent=train.length; overlay.classList.add('hidden'); clearInterval(timer); timer=setInterval(tick,120); draw(); }
+    function change(name) { const d=dirs[name]; if (!d || (d[0]===-dir[0] && d[1]===-dir[1])) return; nextDir=d; }
+    function tick() { if(!alive)return; dir=nextDir; const head={x:train[0].x+dir[0],y:train[0].y+dir[1]}; const ate=head.x===bike.x&&head.y===bike.y; const body=ate?train:train.slice(0,-1); if(head.x<0||head.x>=cells||head.y<0||head.y>=cells||body.some(t=>t.x===head.x&&t.y===head.y)){ alive=false; clearInterval(timer); document.querySelector('#final-score').textContent=train.length; overlay.classList.remove('hidden'); return; } train.unshift(head); if(ate){ bike=randomBike(); scoreEl.textContent=train.length; }else train.pop(); draw(); }
+    function road() { ctx.fillStyle='#a9df76';ctx.fillRect(0,0,600,600); ctx.fillStyle='#405567';ctx.fillRect(0,0,600,600); ctx.strokeStyle='#7890a3';ctx.lineWidth=2; for(let i=0;i<=cells;i++){ctx.beginPath();ctx.moveTo(i*size,0);ctx.lineTo(i*size,600);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i*size);ctx.lineTo(600,i*size);ctx.stroke();} ctx.strokeStyle='#d9e252';ctx.lineWidth=4;ctx.setLineDash([14,14]);ctx.beginPath();ctx.moveTo(0,300);ctx.lineTo(600,300);ctx.stroke();ctx.setLineDash([]); }
+    function vehicle(x,y,color,isBike=false) { const px=x*size,py=y*size; ctx.save();ctx.translate(px+size/2,py+size/2); if(isBike){
+      // 侧视小踏板车：车轮、车身、座椅、前叉和车把，让目标一眼可辨。
+      ctx.fillStyle='#182431'; ctx.beginPath(); ctx.arc(-13,11,7,0,Math.PI*2); ctx.arc(13,11,7,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#d8e4eb'; ctx.beginPath(); ctx.arc(-13,11,3,0,Math.PI*2); ctx.arc(13,11,3,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle='#f0524f'; ctx.lineWidth=5; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.beginPath(); ctx.moveTo(-13,8); ctx.lineTo(-6,-3); ctx.lineTo(7,-3); ctx.quadraticCurveTo(14,0,13,8); ctx.stroke();
+      ctx.fillStyle='#ef4d4d'; ctx.beginPath(); ctx.roundRect(-8,-7,17,11,4); ctx.fill();
+      ctx.fillStyle='#222b38'; ctx.beginPath(); ctx.roundRect(-9,-12,12,5,3); ctx.fill();
+      ctx.strokeStyle='#dce8ec'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(12,7); ctx.lineTo(16,-10); ctx.lineTo(22,-12); ctx.stroke();
+      ctx.fillStyle='#ffe05a'; ctx.beginPath(); ctx.arc(15,-4,4,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#ffffff'; ctx.fillRect(-20,3,4,4);
+    }else{ctx.fillStyle='#172330';ctx.fillRect(-21,-14,42,28);ctx.fillStyle=color;ctx.fillRect(-18,-11,36,22);ctx.fillStyle='#bfe8ff';ctx.fillRect(2,-7,11,14);ctx.fillStyle='#182431';ctx.beginPath();ctx.arc(-12,14,5,0,Math.PI*2);ctx.arc(12,14,5,0,Math.PI*2);ctx.fill();}ctx.restore(); }
+    function draw() { road(); vehicle(bike.x,bike.y,'',true); for(let i=train.length-1;i>=0;i--) vehicle(train[i].x,train[i].y,i?'#35a5d7':'#f7a928'); }
+    document.addEventListener('keydown',e=>{ const map={ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right'}; if(map[e.key]){e.preventDefault();change(map[e.key]);} });
+    document.querySelectorAll('[data-dir]').forEach(b=>b.addEventListener('click',()=>change(b.dataset.dir)));
+    document.querySelector('#restart').onclick=start; document.querySelector('#play-again').onclick=start; start();
+  </script>
+</body>
+</html>
