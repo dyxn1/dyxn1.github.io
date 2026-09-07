@@ -1,70 +1,2579 @@
-<!doctype html>
-<html lang="zh-CN">
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>贪吃车</title>
-  <style>
-    :root { --ink:#162639; --blue:#2976df; --yellow:#ffc928; --road:#34475a; --grass:#a9df76; }
-    * { box-sizing: border-box; }
-    body { margin:0; min-height:100vh; display:grid; place-items:center; overflow:hidden; font-family:"Microsoft YaHei",system-ui,sans-serif; color:var(--ink); background:linear-gradient(135deg,#e2f7c7,#a6d7ef); }
-    .game { width:min(94vw,680px); text-align:center; padding:20px; }
-    h1 { margin:0; font-size:clamp(31px,7vw,52px); letter-spacing:5px; color:#173653; text-shadow:0 3px #fff; }
-    .sub { margin:6px 0 14px; font-size:14px; opacity:.75; }
-    .bar { display:flex; justify-content:space-between; align-items:center; margin:0 auto 10px; max-width:590px; }
-    .score { background:#fff; border-radius:99px; padding:8px 18px; font-weight:bold; box-shadow:0 3px 0 #8bb972; }
-    button { border:0; font:inherit; font-weight:bold; cursor:pointer; color:white; background:#ec604e; padding:9px 17px; border-radius:99px; box-shadow:0 3px 0 #ad3932; }
-    button:active { transform:translateY(2px); box-shadow:0 1px 0 #ad3932; }
-    .board-wrap { position:relative; max-width:590px; margin:auto; border:8px solid #fff; border-radius:19px; overflow:hidden; box-shadow:0 10px 30px #477a6980; }
-    canvas { display:block; width:100%; aspect-ratio:1; background:var(--grass); touch-action:none; }
-    .overlay { position:absolute; inset:0; display:grid; place-items:center; padding:30px; background:#18324bbb; color:#fff; }
-    .panel { background:#fff; color:var(--ink); border-radius:20px; padding:22px 28px; box-shadow:0 8px 0 #19384c; }
-    .panel h2 { margin:0 0 8px; } .panel p { margin:0 0 17px; font-size:14px; }
-    .hidden { display:none; }
-    .controls { display:grid; grid-template-columns:repeat(3,56px); grid-template-rows:repeat(2,48px); justify-content:center; gap:7px; margin:17px auto 0; }
-    .controls button { padding:0; background:#2976df; box-shadow:0 3px 0 #1955a8; font-size:23px; }
-    .controls button:nth-child(1) { grid-column:2; } .controls button:nth-child(2) { grid-column:1; grid-row:2; } .controls button:nth-child(3) { grid-column:2; grid-row:2; } .controls button:nth-child(4) { grid-column:3; grid-row:2; }
-    .tip { margin:14px 0 0; font-size:13px; opacity:.7; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="帮助用户快速发现优质学习资源、构建知识体系和学习路径的资源导航平台。">
+    <title>知识资源导航 | 发现优质学习资源与学习路线</title>
+    <style>
+        :root {
+            --bg: #f6f8fb;
+            --surface: #ffffff;
+            --surface-2: #f1f5f9;
+            --surface-3: #e8eef5;
+            --text: #1f2937;
+            --text-soft: #4b5563;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --primary: #2563eb;
+            --primary-soft: #eff6ff;
+            --primary-border: #bfdbfe;
+            --green: #059669;
+            --green-soft: #ecfdf5;
+            --orange: #d97706;
+            --orange-soft: #fffbeb;
+            --red: #dc2626;
+            --red-soft: #fef2f2;
+            --radius: 10px;
+            --radius-sm: 7px;
+            --shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 8px 24px rgba(15, 23, 42, 0.05);
+            --shadow-lg: 0 18px 50px rgba(15, 23, 42, 0.16);
+            --transition: 0.18s ease;
+        }
+
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --surface: #111c30;
+            --surface-2: #17233c;
+            --surface-3: #1f2c46;
+            --text: #e5eaf3;
+            --text-soft: #c3cbd9;
+            --muted: #8b98ac;
+            --border: #26334c;
+            --primary: #60a5fa;
+            --primary-soft: #172b4a;
+            --primary-border: #264b78;
+            --green: #34d399;
+            --green-soft: #123125;
+            --orange: #fbbf24;
+            --orange-soft: #332710;
+            --red: #f87171;
+            --red-soft: #3a1b20;
+            --shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 8px 24px rgba(0, 0, 0, 0.22);
+            --shadow-lg: 0 18px 50px rgba(0, 0, 0, 0.42);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+            line-height: 1.55;
+            transition: background var(--transition), color var(--transition);
+        }
+
+        button, input, select, textarea {
+            font: inherit;
+            color: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .container {
+            width: min(1240px, calc(100% - 32px));
+            margin: 0 auto;
+        }
+
+        .page-section {
+            display: none;
+            padding: 24px 0 56px;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        .section-head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            margin: 28px 0 14px;
+        }
+
+        .section-head h2 {
+            margin: 0;
+            font-size: 1.35rem;
+            letter-spacing: -0.01em;
+        }
+
+        .section-head p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .text-btn {
+            border: 0;
+            background: transparent;
+            color: var(--primary);
+            padding: 6px 0;
+            font-size: 0.9rem;
+        }
+
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: color-mix(in srgb, var(--surface) 92%, transparent);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-inner {
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text);
+            font-weight: 700;
+            font-size: 1.05rem;
+            white-space: nowrap;
+        }
+
+        .brand-mark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            background: var(--primary-soft);
+            color: var(--primary);
+        }
+
+        .main-nav {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            flex: 1;
+        }
+
+        .main-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-link {
+            border: 0;
+            background: transparent;
+            padding: 10px 12px;
+            border-radius: 7px;
+            color: var(--text-soft);
+            white-space: nowrap;
+            font-size: 0.94rem;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: var(--primary-soft);
+            color: var(--primary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .icon-btn {
+            border: 1px solid var(--border);
+            background: var(--surface);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background var(--transition), border-color var(--transition), transform var(--transition);
+        }
+
+        .icon-btn:hover {
+            border-color: var(--primary-border);
+            background: var(--primary-soft);
+            transform: translateY(-1px);
+        }
+
+        .btn {
+            border: 1px solid transparent;
+            border-radius: 8px;
+            padding: 9px 14px;
+            font-size: 0.9rem;
+            transition: background var(--transition), border-color var(--transition), transform var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            filter: brightness(0.95);
+            transform: translateY(-1px);
+        }
+
+        .btn-ghost {
+            background: var(--surface);
+            border-color: var(--border);
+            color: var(--text-soft);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--primary-border);
+            color: var(--primary);
+            background: var(--primary-soft);
+        }
+
+        .btn-sm {
+            padding: 6px 10px;
+            font-size: 0.83rem;
+        }
+
+        .hero {
+            padding: 58px 0 18px;
+            text-align: center;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            padding: 5px 10px;
+            border: 1px solid var(--primary-border);
+            background: var(--primary-soft);
+            color: var(--primary);
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .hero h1 {
+            margin: 18px auto 8px;
+            max-width: 760px;
+            font-size: clamp(2rem, 4vw, 3.3rem);
+            line-height: 1.15;
+            letter-spacing: -0.03em;
+        }
+
+        .hero-subtitle {
+            max-width: 720px;
+            margin: 0 auto;
+            color: var(--text-soft);
+            font-size: 1.03rem;
+        }
+
+        .search-wrap {
+            position: relative;
+            max-width: 720px;
+            margin: 26px auto 10px;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 56px;
+            padding: 0 112px 0 48px;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            background: var(--surface);
+            color: var(--text);
+            outline: none;
+            font-size: 1rem;
+            box-shadow: var(--shadow);
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-soft);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 17px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            pointer-events: none;
+        }
+
+        .search-kbd {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            color: var(--muted);
+            border-radius: 6px;
+            padding: 4px 7px;
+            font-size: 0.76rem;
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        }
+
+        .search-hint {
+            min-height: 22px;
+            color: var(--muted);
+            font-size: 0.86rem;
+        }
+
+        .hot-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 8px 0 20px;
+        }
+
+        .hot-row .label {
+            color: var(--muted);
+            font-size: 0.86rem;
+        }
+
+        .chip {
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-soft);
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 0.83rem;
+            transition: background var(--transition), color var(--transition), border-color var(--transition);
+        }
+
+        .chip:hover,
+        .chip.active {
+            border-color: var(--primary-border);
+            background: var(--primary-soft);
+            color: var(--primary);
+        }
+
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 12px 0 26px;
+        }
+
+        .stat {
+            min-width: 128px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 10px 14px;
+            box-shadow: var(--shadow);
+        }
+
+        .stat b {
+            display: block;
+            font-size: 1.35rem;
+            color: var(--text);
+        }
+
+        .stat span {
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        .quick-entries {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0 8px;
+        }
+
+        .quick-entry {
+            border: 1px solid var(--border);
+            background: var(--surface);
+            padding: 10px 15px;
+            border-radius: 9px;
+            font-size: 0.9rem;
+            transition: transform var(--transition), border-color var(--transition), background var(--transition);
+        }
+
+        .quick-entry:hover {
+            border-color: var(--primary-border);
+            background: var(--primary-soft);
+            transform: translateY(-2px);
+        }
+
+        .domain-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .domain-card {
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 14px;
+            text-align: left;
+            transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .domain-card:hover {
+            border-color: var(--primary-border);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .domain-card b {
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .domain-card span {
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px;
+        }
+
+        .resource-card {
+            position: relative;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 15px;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .resource-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary-border);
+            box-shadow: var(--shadow);
+        }
+
+        .card-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 9px;
+        }
+
+        .badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 5px;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            line-height: 1.3;
+            font-weight: 600;
+        }
+
+        .level-s { background: var(--red-soft); color: var(--red); }
+        .level-a { background: var(--orange-soft); color: var(--orange); }
+        .level-b { background: var(--surface-2); color: var(--muted); }
+        .badge-official { background: var(--green-soft); color: var(--green); }
+        .badge-rec { background: var(--primary-soft); color: var(--primary); }
+        .badge-type { background: var(--surface-2); color: var(--text-soft); }
+
+        .fav-btn {
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            font-size: 1.2rem;
+            line-height: 1;
+            padding: 2px 3px;
+        }
+
+        .fav-btn.active {
+            color: var(--orange);
+        }
+
+        .card-name {
+            margin: 0 0 6px;
+            font-size: 1.02rem;
+            line-height: 1.3;
+            color: var(--text);
+        }
+
+        .card-desc {
+            margin: 0 0 10px;
+            color: var(--text-soft);
+            font-size: 0.87rem;
+            min-height: 38px;
+        }
+
+        .card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            color: var(--muted);
+            font-size: 0.76rem;
+            margin-bottom: 9px;
+        }
+
+        .card-meta span {
+            background: var(--surface-2);
+            border-radius: 5px;
+            padding: 2px 6px;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 9px;
+        }
+
+        .tag {
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-soft);
+            border-radius: 5px;
+            padding: 2px 6px;
+            font-size: 0.72rem;
+        }
+
+        .tag:hover {
+            border-color: var(--primary-border);
+            color: var(--primary);
+        }
+
+        .card-reason {
+            margin: 0 0 11px;
+            padding: 8px 9px;
+            background: var(--surface-2);
+            border-radius: 7px;
+            color: var(--text-soft);
+            font-size: 0.78rem;
+            line-height: 1.45;
+        }
+
+        .card-actions {
+            margin-top: auto;
+            display: flex;
+            gap: 7px;
+        }
+
+        .card-actions .btn {
+            flex: 1;
+        }
+
+        .path-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        .path-card {
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 17px;
+        }
+
+        .path-card h3 {
+            margin: 0 0 4px;
+        }
+
+        .path-card > p {
+            color: var(--muted);
+            font-size: 0.86rem;
+            margin: 0 0 14px;
+        }
+
+        .path-flow {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .path-node {
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            color: var(--text-soft);
+            border-radius: 7px;
+            padding: 6px 9px;
+            font-size: 0.8rem;
+            transition: background var(--transition), color var(--transition), border-color var(--transition);
+        }
+
+        .path-node:hover {
+            border-color: var(--primary-border);
+            background: var(--primary-soft);
+            color: var(--primary);
+        }
+
+        .path-arrow {
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        .library-layout {
+            display: grid;
+            grid-template-columns: 250px minmax(0, 1fr);
+            gap: 18px;
+            align-items: start;
+        }
+
+        .filters {
+            position: sticky;
+            top: 76px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 14px;
+            max-height: calc(100vh - 92px);
+            overflow-y: auto;
+        }
+
+        .filter-block {
+            margin-bottom: 16px;
+        }
+
+        .filter-block:last-child {
+            margin-bottom: 0;
+        }
+
+        .filter-block h4 {
+            margin: 0 0 8px;
+            font-size: 0.82rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .filter-select {
+            width: 100%;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 7px;
+            padding: 7px 8px;
+            outline: none;
+        }
+
+        .tag-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .tag-cloud .chip {
+            padding: 3px 7px;
+            font-size: 0.74rem;
+        }
+
+        .results-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .results-count {
+            color: var(--text-soft);
+            font-size: 0.9rem;
+        }
+
+        .results-count b {
+            color: var(--primary);
+        }
+
+        .toolbar-right {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .sort-select {
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 7px;
+            padding: 7px 8px;
+            font-size: 0.86rem;
+            outline: none;
+        }
+
+        .empty-state {
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            padding: 42px 18px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .empty-state .emoji {
+            font-size: 2rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-field.full {
+            grid-column: 1 / -1;
+        }
+
+        .form-field label {
+            font-size: 0.86rem;
+            color: var(--text-soft);
+        }
+
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 9px 10px;
+            outline: none;
+            width: 100%;
+        }
+
+        .form-field input:focus,
+        .form-field select:focus,
+        .form-field textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-soft);
+        }
+
+        .form-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--text);
+            color: var(--bg);
+            padding: 10px 14px;
+            border-radius: 9px;
+            font-size: 0.88rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity var(--transition), transform var(--transition);
+            z-index: 300;
+            max-width: min(90vw, 480px);
+            text-align: center;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(15, 23, 42, 0.56);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: block;
+        }
+
+        .modal-dialog {
+            width: min(760px, 100%);
+            margin: 40px auto;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+
+        .modal-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 18px 20px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-head h2 {
+            margin: 8px 0 0;
+            font-size: 1.25rem;
+        }
+
+        .modal-close {
+            border: 0;
+            background: var(--surface-2);
+            border-radius: 7px;
+            width: 34px;
+            height: 34px;
+            flex: 0 0 auto;
+        }
+
+        .modal-body {
+            padding: 18px 20px;
+        }
+
+        .detail-desc {
+            color: var(--text-soft);
+            margin: 0 0 14px;
+        }
+
+        .detail-meta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 14px 0;
+        }
+
+        .detail-meta div {
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            border-radius: 8px;
+            padding: 9px 10px;
+        }
+
+        .detail-meta span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.72rem;
+            margin-bottom: 2px;
+        }
+
+        .detail-meta b {
+            font-size: 0.9rem;
+        }
+
+        .detail-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 16px 0 20px;
+        }
+
+        .similar-title {
+            margin: 22px 0 10px;
+            font-size: 1rem;
+        }
+
+        .back-top {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            box-shadow: var(--shadow);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(8px);
+            transition: opacity var(--transition), transform var(--transition);
+            z-index: 90;
+        }
+
+        .back-top.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        footer {
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+            text-align: center;
+            padding: 26px 0;
+            font-size: 0.86rem;
+        }
+
+        @media (max-width: 980px) {
+            .domain-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .path-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .library-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .filters {
+                position: static;
+                max-height: none;
+                overflow: visible;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                width: min(100% - 20px, 1240px);
+            }
+
+            .header-inner {
+                flex-wrap: wrap;
+                padding: 8px 0;
+                gap: 6px;
+            }
+
+            .main-nav {
+                order: 3;
+                width: 100%;
+                overflow-x: auto;
+                padding-bottom: 4px;
+            }
+
+            .domain-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .resource-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid,
+            .detail-meta {
+                grid-template-columns: 1fr;
+            }
+
+            .search-kbd {
+                display: none;
+            }
+
+            .search-input {
+                padding-right: 18px;
+            }
+
+            .hero {
+                padding-top: 38px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <main class="game">
-    <h1>贪吃车</h1>
-    <p class="sub">撞上摩托车，让你的小火车越来越长！</p>
-    <div class="bar"><div class="score">车厢：<span id="score">3</span></div><button id="restart">重新出发</button></div>
-    <div class="board-wrap">
-      <canvas id="board" width="600" height="600" aria-label="贪吃车游戏画面"></canvas>
-      <div class="overlay hidden" id="overlay"><div class="panel"><h2>发生追尾！</h2><p>本次列车共有 <b id="final-score">3</b> 节车厢</p><button id="play-again">再来一局</button></div></div>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a class="brand" href="#top" data-section-link="home">
+                <span class="brand-mark">📚</span>
+                <span>知识资源导航</span>
+            </a>
+            <nav class="main-nav" aria-label="主导航">
+                <button class="nav-link active" data-section-link="home">首页</button>
+                <button class="nav-link" data-section-link="library">资源库</button>
+                <button class="nav-link" data-section-link="paths">学习路线</button>
+                <button class="nav-link" data-section-link="favorites">收藏与浏览</button>
+                <button class="nav-link" data-section-link="submit">推荐资源</button>
+            </nav>
+            <div class="header-actions">
+                <button class="icon-btn" id="themeToggle" title="切换暗色模式">🌙</button>
+                <button class="btn btn-primary" id="donateBtn">打赏支持</button>
+            </div>
+        </div>
+    </header>
+
+    <main id="top">
+        <section id="home" class="page-section active">
+            <div class="container hero">
+                <span class="eyebrow">发现优质资源 · 建立知识体系 · 规划学习路径</span>
+                <h1>不知道去哪学？从这里开始。</h1>
+                <p class="hero-subtitle">聚合课程、教材、官方资料、数据库、论文、题库与工具，用清晰的信息架构帮你快速找到下一步该学什么、去哪学。</p>
+                <div class="search-wrap">
+                    <span class="search-icon">🔍</span>
+                    <input id="searchInput" class="search-input" type="search" placeholder="搜索资源名称、关键词、分类、标签或描述…" autocomplete="off">
+                    <span class="search-kbd">Ctrl K</span>
+                </div>
+                <div id="searchHint" class="search-hint"></div>
+                <div id="hotSearches" class="hot-row"></div>
+                <div id="stats" class="stats"></div>
+                <div id="quickEntries" class="quick-entries"></div>
+            </div>
+
+            <div class="container">
+                <div class="section-head">
+                    <div>
+                        <h2>热门领域</h2>
+                        <p>按“我想学什么”快速进入</p>
+                    </div>
+                    <button class="text-btn" data-section-link="library">查看全部分类 →</button>
+                </div>
+                <div id="hotDomains" class="domain-grid"></div>
+            </div>
+
+            <div class="container">
+                <div class="section-head">
+                    <div>
+                        <h2>精选资源</h2>
+                        <p>优先展示官方、权威与经典资源</p>
+                    </div>
+                    <button class="text-btn" data-quick="premium">更多精品 →</button>
+                </div>
+                <div id="featuredGrid" class="resource-grid"></div>
+            </div>
+
+            <div class="container">
+                <div class="section-head">
+                    <div>
+                        <h2>今日推荐</h2>
+                        <p>每天换一组值得了解的资源</p>
+                    </div>
+                </div>
+                <div id="todayGrid" class="resource-grid"></div>
+            </div>
+
+            <div class="container">
+                <div class="section-head">
+                    <div>
+                        <h2>学习路线</h2>
+                        <p>沿着节点学习，每个节点都有对应资源</p>
+                    </div>
+                    <button class="text-btn" data-section-link="paths">查看全部路线 →</button>
+                </div>
+                <div id="pathPreview" class="path-grid"></div>
+            </div>
+
+            <div class="container">
+                <div class="section-head">
+                    <div>
+                        <h2>最新加入</h2>
+                        <p>最近补充的高质量资源</p>
+                    </div>
+                    <button class="text-btn" data-quick="newest">查看全部 →</button>
+                </div>
+                <div id="latestGrid" class="resource-grid"></div>
+            </div>
+        </section>
+
+        <section id="library" class="page-section">
+            <div class="container">
+                <div class="section-head" style="margin-top:8px;">
+                    <div>
+                        <h2>资源库</h2>
+                        <p>按学习领域、资源类型、等级、价格和标签组合筛选</p>
+                    </div>
+                </div>
+
+                <div class="library-layout">
+                    <aside class="filters" id="filters">
+                        <div class="filter-block">
+                            <h4>学习领域</h4>
+                            <select id="filterCategory" class="filter-select"></select>
+                        </div>
+                        <div class="filter-block">
+                            <h4>资源类型</h4>
+                            <select id="filterType" class="filter-select"></select>
+                        </div>
+                        <div class="filter-block">
+                            <h4>资源等级</h4>
+                            <select id="filterLevel" class="filter-select">
+                                <option value="全部">全部等级</option>
+                                <option value="S">S · 官方 / 经典 / 顶级机构</option>
+                                <option value="A">A · 高质量专业资源</option>
+                                <option value="B">B · 补充资源</option>
+                            </select>
+                        </div>
+                        <div class="filter-block">
+                            <h4>费用</h4>
+                            <select id="filterPrice" class="filter-select">
+                                <option value="全部">全部费用</option>
+                                <option value="免费">免费</option>
+                                <option value="部分付费">部分付费</option>
+                                <option value="付费">付费</option>
+                            </select>
+                        </div>
+                        <div class="filter-block">
+                            <h4>语言</h4>
+                            <select id="filterLanguage" class="filter-select">
+                                <option value="全部">全部语言</option>
+                                <option value="中文">中文</option>
+                                <option value="英文">英文</option>
+                                <option value="中英">中英</option>
+                            </select>
+                        </div>
+                        <div class="filter-block">
+                            <h4>标签</h4>
+                            <div id="tagCloud" class="tag-cloud"></div>
+                        </div>
+                        <button class="btn btn-ghost" id="resetFilters" style="width:100%;">清空筛选</button>
+                    </aside>
+
+                    <div>
+                        <div class="results-toolbar">
+                            <div class="results-count" id="resultCount"></div>
+                            <div class="toolbar-right">
+                                <span style="color:var(--muted);font-size:.84rem;">排序</span>
+                                <select id="sortSelect" class="sort-select">
+                                    <option value="recommended">推荐优先</option>
+                                    <option value="newest">最新加入</option>
+                                    <option value="level">等级优先</option>
+                                    <option value="name">名称排序</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="resourceGrid" class="resource-grid"></div>
+                        <div id="emptyState"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="paths" class="page-section">
+            <div class="container">
+                <div class="section-head" style="margin-top:8px;">
+                    <div>
+                        <h2>学习路线</h2>
+                        <p>每个节点都可以点击查看对应资源</p>
+                    </div>
+                </div>
+                <div id="allPaths" class="path-grid"></div>
+            </div>
+        </section>
+
+        <section id="favorites" class="page-section">
+            <div class="container">
+                <div class="section-head" style="margin-top:8px;">
+                    <div>
+                        <h2>我的收藏</h2>
+                        <p>使用 localStorage 保存，无需登录</p>
+                    </div>
+                </div>
+                <div id="favoriteGrid" class="resource-grid"></div>
+                <div id="favoriteEmpty"></div>
+
+                <div class="section-head">
+                    <div>
+                        <h2>最近浏览</h2>
+                        <p>方便接着上次的学习继续</p>
+                    </div>
+                    <button class="text-btn" id="clearRecent">清空浏览记录</button>
+                </div>
+                <div id="recentGrid" class="resource-grid"></div>
+                <div id="recentEmpty"></div>
+            </div>
+        </section>
+
+        <section id="submit" class="page-section">
+            <div class="container">
+                <div class="section-head" style="margin-top:8px;">
+                    <div>
+                        <h2>推荐资源</h2>
+                        <p>发现优质资源后可以提交，保存后会在本地资源库中显示</p>
+                    </div>
+                </div>
+                <form id="submitForm" style="margin-bottom:34px;">
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label for="subName">资源名称 *</label>
+                            <input id="subName" type="text" required placeholder="例如：MIT OpenCourseWare">
+                        </div>
+                        <div class="form-field">
+                            <label for="subUrl">访问链接 *</label>
+                            <input id="subUrl" type="url" required placeholder="https://...">
+                        </div>
+                        <div class="form-field full">
+                            <label for="subDesc">一句话定位 / 简介 *</label>
+                            <input id="subDesc" type="text" required placeholder="用一句话说明它是什么、适合谁">
+                        </div>
+                        <div class="form-field">
+                            <label for="subCategory">学习领域</label>
+                            <select id="subCategory"></select>
+                        </div>
+                        <div class="form-field">
+                            <label for="subType">资源类型</label>
+                            <select id="subType"></select>
+                        </div>
+                        <div class="form-field">
+                            <label for="subLevel">资源等级</label>
+                            <select id="subLevel">
+                                <option value="S">S · 官方 / 经典 / 顶级机构</option>
+                                <option value="A" selected>A · 高质量专业资源</option>
+                                <option value="B">B · 补充资源</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label for="subPrice">费用</label>
+                            <select id="subPrice">
+                                <option value="免费" selected>免费</option>
+                                <option value="部分付费">部分付费</option>
+                                <option value="付费">付费</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label for="subLanguage">语言</label>
+                            <select id="subLanguage">
+                                <option value="中文" selected>中文</option>
+                                <option value="英文">英文</option>
+                                <option value="中英">中英</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label for="subTags">标签（用逗号或空格分隔）</label>
+                            <input id="subTags" type="text" placeholder="例如：Python, 入门, 免费">
+                        </div>
+                        <div class="form-field full">
+                            <label for="subReason">推荐理由（可选）</label>
+                            <textarea id="subReason" rows="3" placeholder="为什么值得推荐？"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" type="submit">提交推荐</button>
+                            <span id="submitMessage" style="color:var(--muted);font-size:.86rem;"></span>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="section-head">
+                    <div>
+                        <h2>本地推荐记录</h2>
+                        <p>你提交过的资源</p>
+                    </div>
+                </div>
+                <div id="submittedGrid" class="resource-grid"></div>
+                <div id="submittedEmpty"></div>
+            </div>
+        </section>
+    </main>
+
+    <div id="detailModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+        <div class="modal-dialog">
+            <div class="modal-head">
+                <div id="detailHead"></div>
+                <button class="modal-close" data-action="close-modal" aria-label="关闭">✕</button>
+            </div>
+            <div class="modal-body" id="detailBody"></div>
+        </div>
     </div>
-    <div class="controls" aria-label="方向控制"><button data-dir="up">↑</button><button data-dir="left">←</button><button data-dir="down">↓</button><button data-dir="right">→</button></div>
-    <p class="tip">使用方向键、WASD 或下方按钮驾驶</p>
-  </main>
-  <script>
-    const canvas = document.querySelector('#board'), ctx = canvas.getContext('2d');
-    const scoreEl = document.querySelector('#score'), overlay = document.querySelector('#overlay');
-    const cells = 20, size = canvas.width / cells;
-    let train, bike, dir, nextDir, timer, alive;
-    const dirs = { up:[0,-1], down:[0,1], left:[-1,0], right:[1,0] };
-    function randomBike() { let p; do { p={x:Math.floor(Math.random()*cells),y:Math.floor(Math.random()*cells)}; } while(train.some(t=>t.x===p.x&&t.y===p.y)); return p; }
-    function start() { train=[{x:10,y:10},{x:9,y:10},{x:8,y:10}]; dir=[1,0]; nextDir=[1,0]; bike=randomBike(); alive=true; scoreEl.textContent=train.length; overlay.classList.add('hidden'); clearInterval(timer); timer=setInterval(tick,120); draw(); }
-    function change(name) { const d=dirs[name]; if (!d || (d[0]===-dir[0] && d[1]===-dir[1])) return; nextDir=d; }
-    function tick() { if(!alive)return; dir=nextDir; const head={x:train[0].x+dir[0],y:train[0].y+dir[1]}; const ate=head.x===bike.x&&head.y===bike.y; const body=ate?train:train.slice(0,-1); if(head.x<0||head.x>=cells||head.y<0||head.y>=cells||body.some(t=>t.x===head.x&&t.y===head.y)){ alive=false; clearInterval(timer); document.querySelector('#final-score').textContent=train.length; overlay.classList.remove('hidden'); return; } train.unshift(head); if(ate){ bike=randomBike(); scoreEl.textContent=train.length; }else train.pop(); draw(); }
-    function road() { ctx.fillStyle='#a9df76';ctx.fillRect(0,0,600,600); ctx.fillStyle='#405567';ctx.fillRect(0,0,600,600); ctx.strokeStyle='#7890a3';ctx.lineWidth=2; for(let i=0;i<=cells;i++){ctx.beginPath();ctx.moveTo(i*size,0);ctx.lineTo(i*size,600);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i*size);ctx.lineTo(600,i*size);ctx.stroke();} ctx.strokeStyle='#d9e252';ctx.lineWidth=4;ctx.setLineDash([14,14]);ctx.beginPath();ctx.moveTo(0,300);ctx.lineTo(600,300);ctx.stroke();ctx.setLineDash([]); }
-    function vehicle(x,y,color,isBike=false) { const px=x*size,py=y*size; ctx.save();ctx.translate(px+size/2,py+size/2); if(isBike){
-      // 侧视小踏板车：车轮、车身、座椅、前叉和车把，让目标一眼可辨。
-      ctx.fillStyle='#182431'; ctx.beginPath(); ctx.arc(-13,11,7,0,Math.PI*2); ctx.arc(13,11,7,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle='#d8e4eb'; ctx.beginPath(); ctx.arc(-13,11,3,0,Math.PI*2); ctx.arc(13,11,3,0,Math.PI*2); ctx.fill();
-      ctx.strokeStyle='#f0524f'; ctx.lineWidth=5; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.beginPath(); ctx.moveTo(-13,8); ctx.lineTo(-6,-3); ctx.lineTo(7,-3); ctx.quadraticCurveTo(14,0,13,8); ctx.stroke();
-      ctx.fillStyle='#ef4d4d'; ctx.beginPath(); ctx.roundRect(-8,-7,17,11,4); ctx.fill();
-      ctx.fillStyle='#222b38'; ctx.beginPath(); ctx.roundRect(-9,-12,12,5,3); ctx.fill();
-      ctx.strokeStyle='#dce8ec'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(12,7); ctx.lineTo(16,-10); ctx.lineTo(22,-12); ctx.stroke();
-      ctx.fillStyle='#ffe05a'; ctx.beginPath(); ctx.arc(15,-4,4,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle='#ffffff'; ctx.fillRect(-20,3,4,4);
-    }else{ctx.fillStyle='#172330';ctx.fillRect(-21,-14,42,28);ctx.fillStyle=color;ctx.fillRect(-18,-11,36,22);ctx.fillStyle='#bfe8ff';ctx.fillRect(2,-7,11,14);ctx.fillStyle='#182431';ctx.beginPath();ctx.arc(-12,14,5,0,Math.PI*2);ctx.arc(12,14,5,0,Math.PI*2);ctx.fill();}ctx.restore(); }
-    function draw() { road(); vehicle(bike.x,bike.y,'',true); for(let i=train.length-1;i>=0;i--) vehicle(train[i].x,train[i].y,i?'#35a5d7':'#f7a928'); }
-    document.addEventListener('keydown',e=>{ const map={ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right'}; if(map[e.key]){e.preventDefault();change(map[e.key]);} });
-    document.querySelectorAll('[data-dir]').forEach(b=>b.addEventListener('click',()=>change(b.dataset.dir)));
-    document.querySelector('#restart').onclick=start; document.querySelector('#play-again').onclick=start; start();
-  </script>
+
+    <div id="pathModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="pathTitle">
+        <div class="modal-dialog">
+            <div class="modal-head">
+                <div>
+                    <div class="badges" id="pathBadges"></div>
+                    <h2 id="pathTitle"></h2>
+                </div>
+                <button class="modal-close" data-action="close-modal" aria-label="关闭">✕</button>
+            </div>
+            <div class="modal-body">
+                <p id="pathDesc" style="color:var(--muted);margin-top:0;"></p>
+                <div id="pathResources" class="resource-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="donateModal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-dialog" style="max-width:360px;text-align:center;">
+            <div class="modal-head">
+                <div>
+                    <h2>感谢支持</h2>
+                </div>
+                <button class="modal-close" data-action="close-modal" aria-label="关闭">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-top:0;">请使用微信扫码打赏</p>
+                <img src="qrcode.jpg" alt="微信收款码" style="max-width:100%;max-height:280px;border-radius:8px;">
+            </div>
+        </div>
+    </div>
+
+    <button id="backTop" class="back-top" title="返回顶部">↑</button>
+    <div id="toast" class="toast"></div>
+
+    <footer>
+        <p>© 2026 知识资源导航 · 收录优质学习资源，帮助构建知识体系与学习路径</p>
+    </footer>
+
+    <script>
+    (function () {
+        "use strict";
+
+        function R(name, url, description, category, type, level, language, price, tags, official, recommended, reason, audience, difficulty, added) {
+            return {
+                name: name,
+                url: url,
+                description: description,
+                category: category,
+                type: type,
+                level: level || "B",
+                language: language || "中文",
+                price: price || "免费",
+                tags: String(tags || "").split("|").filter(Boolean),
+                official: !!official,
+                recommended: !!recommended,
+                reason: reason || "",
+                audience: audience || "通用",
+                difficulty: difficulty || "入门",
+                added: added || "2026-09-07",
+                source: "builtin"
+            };
+        }
+
+        const RAW = [
+            R("Investopedia", "https://www.investopedia.com", "全球知名金融术语、概念与知识平台", "金融基础", "网站", "S", "英文", "免费", "金融基础|投资|词典", false, true, "全球经典金融百科，适合建立术语体系", "零基础", "入门"),
+            R("Khan Academy - 金融与资本市场", "https://www.khanacademy.org/economics-finance-domain", "免费金融与资本市场基础课程", "金融基础", "课程", "S", "英文", "免费", "金融基础|经济学|免费课程", true, true, "权威非营利教育平台，讲解清晰", "零基础", "入门"),
+            R("新浪财经 - 理财学院", "https://finance.sina.com.cn", "新浪财经旗下的理财知识栏目", "金融基础", "网站", "B", "中文", "免费", "财经资讯|理财|入门", false, false, "", "零基础", "入门"),
+            R("网易云课堂 - 金融基础", "https://study.163.com/category/finance", "网易云课堂金融入门课程集合", "金融基础", "课程", "B", "中文", "部分付费", "金融基础|课程|理财", false, false, "", "零基础", "入门"),
+            R("简七理财", "https://www.jian7.com", "面向普通人的理财科普与入门平台", "金融基础", "网站", "B", "中文", "免费", "理财|入门|个人理财", false, false, "", "零基础", "入门"),
+            R("雪球 - 新手入门", "https://xueqiu.com", "投资社区，内有新手投资学习专区", "投资学", "社区", "A", "中文", "免费", "股票|投资|社区|入门", false, true, "社区氛围活跃，适合从真实讨论中学习", "零基础", "入门"),
+            R("百度金融百科", "https://baike.baidu.com", "金融相关词条与基础概念查询", "金融基础", "网站", "B", "中文", "免费", "百科|词典|金融基础", false, false, "", "零基础", "入门"),
+            R("腾讯理财通 - 知识库", "https://licai.qq.com", "理财通知识库与投资者教育内容", "金融基础", "网站", "B", "中文", "免费", "理财|金融基础|投教", false, false, "", "零基础", "入门"),
+            R("蚂蚁财富 - 小白学堂", "https://www.antfortune.com", "支付宝生态中的理财入门内容", "金融基础", "网站", "B", "中文", "免费", "理财|金融基础|App", false, false, "", "零基础", "入门"),
+            R("知乎金融话题专栏", "https://www.zhihu.com/topic/19559424/hot", "金融话题下的用户讨论与科普", "金融基础", "社区", "B", "中文", "免费", "金融基础|问答|社区", false, false, "", "通用", "入门"),
+            R("Bloomberg", "https://www.bloomberg.com", "国际财经资讯、市场数据与深度分析", "行业研究", "网站", "S", "英文", "部分付费", "财经资讯|市场数据|行业研究", false, true, "全球金融信息领域的标杆", "从业者", "进阶"),
+            R("Morningstar", "https://www.morningstar.com", "基金评级、投资研究与分析工具", "基金研究", "研究报告", "S", "英文", "部分付费", "基金|评级|研究|投资", false, true, "基金研究领域权威，评级体系成熟", "投资者", "进阶"),
+            R("CFA Institute", "https://www.cfainstitute.org", "CFA 考试官方机构与学习资源", "CFA", "官方资料", "S", "英文", "部分付费", "CFA|职业考试|课程|官方", true, true, "特许金融分析师官方机构", "从业者", "专业"),
+            R("SSRN", "https://www.ssrn.com", "社会科学研究网络，收录大量金融与经济学论文", "科研", "论文", "S", "英文", "免费", "论文|金融|学术|研究", false, true, "学术预印本与论文检索的重要入口", "研究者", "专业"),
+            R("华尔街见闻", "https://wallstreetcn.com", "全球市场资讯与深度研究内容", "行业研究", "网站", "A", "中文", "部分付费", "财经资讯|宏观|深度研究", false, false, "", "投资者", "进阶"),
+            R("中国金融四十人论坛", "http://www.cf40.org.cn", "金融政策与行业研究智库", "行业研究", "研究报告", "S", "中文", "免费", "政策|宏观经济|金融研究", true, true, "国内重要金融智库，研究报告质量高", "研究者", "专业"),
+            R("财新网 - 宏观分析", "https://economy.caixin.com", "宏观经济与财经深度报道", "行业研究", "网站", "A", "中文", "付费", "财经|宏观|深度|新闻", false, false, "", "投资者", "进阶"),
+            R("中金公司研究报告", "https://research.cicc.com", "中金公司研究部公开研究报告", "券商研究", "研究报告", "A", "中文", "部分付费", "券商|研报|行业|金融", false, false, "", "从业者", "专业"),
+            R("国泰君安证券研究所", "https://www.gtjas.com/research", "国泰君安研究所研究报告", "券商研究", "研究报告", "A", "中文", "部分付费", "券商|研报|证券|金融", false, false, "", "从业者", "专业"),
+            R("万得资讯（Wind）", "https://www.wind.com.cn", "金融数据终端，覆盖市场、公司与行业数据", "金融科技", "数据库", "S", "中文", "付费", "金融数据|终端|数据库", true, true, "国内金融从业者最常用的数据终端之一", "从业者", "专业"),
+            R("支付宝理财频道", "https://ur.alipay.com", "支付宝 App 内理财入口与知识内容", "金融基础", "网站", "B", "中文", "免费", "理财|金融基础|App", false, false, "", "零基础", "入门"),
+            R("招商银行 - 财富管理", "https://wealth.cmbchina.com", "招商银行财富管理知识普及", "金融基础", "网站", "B", "中文", "免费", "理财|银行|财富管理", false, false, "", "零基础", "入门"),
+            R("东方财富网", "https://www.eastmoney.com", "综合财经资讯、行情与理财内容", "投资学", "网站", "A", "中文", "免费", "财经|股票|基金|资讯", false, false, "", "投资者", "入门"),
+            R("天天基金网 - 投资者教育", "https://fund.eastmoney.com", "基金数据、筛选与投资者教育", "基金", "网站", "A", "中文", "免费", "基金|数据|投资教育", false, false, "", "投资者", "入门"),
+            R("好买基金网", "https://www.howbuy.com", "基金研究、组合与投资平台", "基金", "网站", "A", "中文", "免费", "基金|研究|组合|工具", false, false, "", "投资者", "进阶"),
+            R("陆金所 - 金融知识库", "https://www.lu.com", "陆金所金融知识库与理财内容", "金融基础", "网站", "B", "中文", "免费", "理财|金融基础|知识库", false, false, "", "零基础", "入门"),
+            R("平安证券 - 投教基地", "https://stock.pingan.com", "平安证券投资者教育专栏", "证券", "官方资料", "A", "中文", "免费", "证券|投教|股票", true, false, "", "投资者", "入门"),
+            R("华夏基金 - 投资学堂", "https://www.chinaamc.com", "华夏基金投资者教育与基金知识", "基金", "课程", "A", "中文", "免费", "基金|投教|理财", true, false, "", "投资者", "入门"),
+            R("百度财富", "https://caifu.baidu.com", "理财知识聚合平台", "金融基础", "网站", "B", "中文", "免费", "理财|金融基础|聚合", false, false, "", "零基础", "入门"),
+            R("Coursera - 金融课程", "https://www.coursera.org/browse/business/finance", "国际名校金融课程集合，含耶鲁金融市场", "金融基础", "课程", "S", "英文", "部分付费", "金融|大学|课程|投资", false, true, "世界名校金融课程入口", "学生", "进阶"),
+            R("edX - MIT 金融学导论", "https://www.edx.org/course/introduction-to-finance", "MIT 金融学导论课程", "金融基础", "课程", "S", "英文", "免费", "金融|大学|课程|MIT", true, true, "MIT 官方课程，免费学习", "学生", "进阶"),
+            R("中国大学MOOC - 金融学课程", "https://www.icourse163.org", "国内高校金融学公开课程", "金融基础", "课程", "S", "中文", "免费", "金融|大学|课程|MOOC", true, true, "国内高校优质公开课聚合", "学生", "入门"),
+            R("学堂在线 - 清华五道口金融课程", "https://www.xuetangx.com", "清华大学金融课程平台", "金融基础", "课程", "S", "中文", "免费", "金融|大学|课程|清华", true, true, "清华五道口金融课程资源", "学生", "进阶"),
+            R("高顿财经 - ACCA/CFA 课程", "https://www.gaodun.com", "ACCA、CFA 等财经职业资格培训", "职业考试", "课程", "A", "中文", "付费", "CFA|ACCA|会计|培训", false, false, "", "从业者", "专业"),
+            R("新东方在线 - 金融考研辅导", "https://www.koolearn.com", "金融考研专业课与公共课辅导", "考研", "课程", "A", "中文", "付费", "考研|金融|课程|辅导", false, false, "", "考生", "进阶"),
+            R("金融界教育频道", "http://edu.jrj.com.cn", "投资与金融教育内容", "投资学", "网站", "B", "中文", "免费", "投资|金融|教育", false, false, "", "通用", "入门"),
+            R("人大经济论坛（经管之家）", "https://bbs.pinggu.org", "经济、金融学术与职业交流社区", "科研", "社区", "A", "中文", "免费", "学术|金融|经管|社区", false, false, "", "研究者", "专业"),
+            R("华尔街学堂", "https://www.wallstreet.cn", "金融实务课程与职业提升内容", "金融基础", "课程", "A", "中文", "付费", "金融实务|课程|职业", false, false, "", "从业者", "进阶"),
+            R("启牛学堂", "https://www.qiniuxueyuan.com", "理财与投资教育平台", "金融基础", "课程", "B", "中文", "付费", "理财|投资|课程", false, false, "", "零基础", "入门"),
+            R("中国证券业协会", "https://www.sac.net.cn", "证券业协会官网，行业培训与政策", "证券", "官方资料", "S", "中文", "免费", "证券|官方|职业考试|行业", true, true, "证券行业官方组织", "从业者", "专业"),
+            R("中国银行业协会", "http://www.china-cba.net", "银行业协会官网，行业培训与职业考试", "职业考试", "官方资料", "S", "中文", "免费", "银行|官方|职业考试|行业", true, true, "银行业官方组织与考试入口", "从业者", "专业"),
+            R("Bloomberg Terminal", "https://www.bloomberg.com/professional", "彭博专业金融终端", "金融科技", "数据库", "S", "英文", "付费", "金融数据|终端|市场", true, false, "专业金融机构广泛使用的数据终端", "从业者", "专业"),
+            R("Refinitiv", "https://www.refinitiv.com", "路孚特金融数据与培训服务", "金融科技", "数据库", "S", "英文", "付费", "金融数据|市场|终端", true, false, "全球金融数据服务商", "从业者", "专业"),
+            R("金融风险管理师（FRM）官网", "https://www.garp.org", "GARP FRM 官方认证与资源", "FRM", "官方资料", "S", "英文", "部分付费", "FRM|风险管理|官方", true, true, "金融风险管理权威认证机构", "从业者", "专业"),
+            R("德勤金融研究院", "https://www2.deloitte.com/cn/zh.html", "德勤金融行业研究报告", "行业研究", "研究报告", "A", "中英", "免费", "咨询|金融|研报|行业", false, false, "", "从业者", "专业"),
+            R("普华永道 - 行业洞察", "https://www.pwccn.com", "普华永道金融行业分析", "行业研究", "研究报告", "A", "中英", "免费", "咨询|金融|行业|研报", false, false, "", "从业者", "专业"),
+            R("麦肯锡金融行业报告", "https://www.mckinsey.com/industries/financial-services", "麦肯锡金融行业研究", "行业研究", "研究报告", "S", "英文", "免费", "咨询|金融|行业|研报", false, true, "国际顶级咨询机构金融研究", "从业者", "专业"),
+            R("波士顿咨询（BCG）金融研究", "https://www.bcg.com/industries/financial-institutions", "BCG 金融行业洞察与白皮书", "行业研究", "研究报告", "A", "英文", "免费", "咨询|金融|行业|研报", false, false, "", "从业者", "专业"),
+            R("华尔街日报中文网", "https://cn.wsj.com", "国际财经新闻中文版", "行业研究", "网站", "A", "中文", "部分付费", "财经|新闻|国际", false, false, "", "投资者", "进阶"),
+            R("财经网", "https://www.caijing.com.cn", "国内财经资讯", "行业研究", "网站", "A", "中文", "免费", "财经|新闻|资讯", false, false, "", "投资者", "入门"),
+            R("第一财经", "https://www.yicai.com", "财经新闻与深度分析", "行业研究", "网站", "A", "中文", "免费", "财经|新闻|深度", false, false, "", "投资者", "进阶"),
+            R("界面新闻 - 金融板块", "https://www.jiemian.com", "界面新闻金融与商业报道", "行业研究", "网站", "A", "中文", "免费", "财经|新闻|商业", false, false, "", "投资者", "入门"),
+            R("经济观察网", "http://www.eeo.com.cn", "宏观经济与产业分析", "行业研究", "网站", "A", "中文", "免费", "财经|宏观|产业", false, false, "", "研究者", "进阶"),
+            R("福布斯中国", "https://www.forbeschina.com", "商业与财富报道", "行业研究", "网站", "B", "中文", "免费", "财经|商业|财富", false, false, "", "投资者", "入门"),
+            R("21世纪经济报道", "http://www.21jingji.com", "财经新闻与政策解读", "行业研究", "网站", "A", "中文", "免费", "财经|新闻|政策", false, false, "", "投资者", "进阶"),
+            R("和讯网", "https://www.hexun.com", "综合财经资讯", "行业研究", "网站", "B", "中文", "免费", "财经|资讯|综合", false, false, "", "投资者", "入门"),
+            R("金融时报（FT中文网）", "https://www.ftchinese.com", "国际财经新闻中文版", "行业研究", "网站", "S", "中文", "部分付费", "财经|新闻|国际|深度", false, true, "国际知名财经媒体中文版", "投资者", "进阶"),
+            R("财联社", "https://www.cls.cn", "实时财经快讯", "行业研究", "网站", "A", "中文", "免费", "财经|快讯|实时", false, false, "", "投资者", "入门"),
+            R("B站财经 UP 主（巫师财经等）", "https://space.bilibili.com/319318239", "B站财经类视频内容", "金融基础", "视频", "B", "中文", "免费", "视频|财经|科普", false, false, "", "零基础", "入门"),
+            R("YouTube - 金融教育频道", "https://www.youtube.com", "国际金融教育视频，如 The Plain Bagel", "金融基础", "视频", "A", "英文", "免费", "视频|金融|教育", false, false, "", "零基础", "入门"),
+            R("腾讯视频 - 金融公开课", "https://v.qq.com", "腾讯视频金融公开课", "金融基础", "视频", "B", "中文", "免费", "视频|金融|公开课", false, false, "", "零基础", "入门"),
+            R("爱奇艺知识 - 金融专栏", "https://www.iqiyi.com", "爱奇艺知识金融专栏", "金融基础", "视频", "B", "中文", "部分付费", "视频|金融|知识付费", false, false, "", "零基础", "入门"),
+            R("优酷财经频道", "https://www.youku.com", "优酷财经视频栏目", "金融基础", "视频", "B", "中文", "免费", "视频|财经|栏目", false, false, "", "零基础", "入门"),
+            R("中国证券网 - 视频讲堂", "http://www.cnstock.com", "中国证券网视频与投资者教育", "证券", "视频", "B", "中文", "免费", "证券|视频|投教", false, false, "", "投资者", "入门"),
+            R("网易公开课 - 金融专题", "https://open.163.com", "网易公开课金融专题", "金融基础", "视频", "A", "中文", "免费", "视频|金融|公开课", false, false, "", "零基础", "入门"),
+            R("喜马拉雅 - 金融音频课", "https://www.ximalaya.com", "金融与投资音频课程", "金融基础", "课程", "B", "中文", "部分付费", "音频|金融|课程", false, false, "", "零基础", "入门"),
+            R("雪球社区", "https://xueqiu.com", "中文投资交流社区", "投资学", "社区", "A", "中文", "免费", "股票|投资|社区|讨论", false, true, "高质量中文投资讨论社区", "投资者", "进阶"),
+            R("集思录", "https://www.jisilu.cn", "低风险投资社区与工具", "投资学", "社区", "A", "中文", "免费", "低风险|投资|社区|工具", false, false, "", "投资者", "进阶"),
+            R("同花顺论坛", "https://www.10jqka.com.cn", "同花顺股票论坛", "证券", "社区", "B", "中文", "免费", "股票|证券|论坛", false, false, "", "投资者", "入门"),
+            R("东方财富股吧", "https://guba.eastmoney.com", "股票讨论社区", "股票", "社区", "B", "中文", "免费", "股票|社区|讨论", false, false, "", "投资者", "入门"),
+            R("知乎金融话题讨论区", "https://www.zhihu.com/topic/19559424", "知乎金融问答与讨论", "金融基础", "社区", "A", "中文", "免费", "金融|问答|社区", false, false, "", "通用", "入门"),
+            R("Reddit - r/investing", "https://www.reddit.com/r/investing", "英文投资讨论社区", "投资学", "社区", "A", "英文", "免费", "投资|社区|英文", false, false, "", "投资者", "进阶"),
+            R("老虎证券社区", "https://www.laohu8.com", "美股投资交流社区", "股票", "社区", "A", "中文", "免费", "美股|股票|社区", false, false, "", "投资者", "进阶"),
+            R("富途牛牛圈", "https://www.futunn.com", "港股与美股投资社区", "股票", "社区", "A", "中文", "免费", "港股|美股|股票|社区", false, false, "", "投资者", "进阶"),
+            R("Investing.com 论坛", "https://www.investing.com", "国际金融讨论社区", "投资学", "社区", "A", "英文", "免费", "投资|社区|国际", false, false, "", "投资者", "进阶"),
+            R("巴克莱银行投资者社区", "https://www.barclays.co.uk", "巴克莱银行投资者内容", "投资学", "社区", "B", "英文", "免费", "银行|投资|社区", false, false, "", "投资者", "进阶"),
+            R("中国金融培训中心", "http://www.chinacft.org", "金融行业培训资源", "职业考试", "官方资料", "A", "中文", "免费", "金融|培训|官方", true, false, "", "从业者", "专业"),
+            R("金融界学院", "http://edu.jrj.com.cn", "投资教育平台", "投资学", "网站", "B", "中文", "免费", "投资|金融|教育", false, false, "", "通用", "入门"),
+            R("好未来（学而思）金融课程", "https://www.100tal.com", "好未来旗下金融课程", "金融基础", "课程", "B", "中文", "付费", "金融|课程|培训", false, false, "", "学生", "入门"),
+            R("网易有道精品课 - 金融模块", "https://ke.youdao.com", "有道精品课金融模块", "金融基础", "课程", "B", "中文", "付费", "金融|课程|培训", false, false, "", "学生", "入门"),
+            R("沪江网校 - 金融英语", "https://www.hujiang.com", "金融英语与语言结合课程", "英语", "课程", "B", "中文", "付费", "英语|金融英语|课程", false, false, "", "从业者", "进阶"),
+            R("腾讯课堂 - 金融实战课", "https://ke.qq.com", "腾讯课堂金融实战课程", "金融基础", "课程", "A", "中文", "部分付费", "金融|课程|实战", false, false, "", "从业者", "进阶"),
+            R("得到 APP - 香帅的金融学课", "https://www.dedao.cn", "得到平台金融学课程", "金融基础", "课程", "A", "中文", "付费", "金融|课程|音频", false, false, "", "零基础", "入门"),
+            R("极客时间 - 金融科技专栏", "https://time.geekbang.org", "金融科技与科技结合课程", "金融科技", "课程", "A", "中文", "付费", "金融科技|课程|专栏", false, false, "", "从业者", "进阶"),
+            R("小鹅通知识店铺（金融类）", "https://www.xiaoe-tech.com", "第三方金融知识店铺平台", "金融基础", "网站", "B", "中文", "部分付费", "金融|知识店铺|课程", false, false, "", "通用", "入门"),
+            R("同花顺 iFinD", "https://www.10jqka.com.cn", "同花顺金融数据终端", "证券", "数据库", "A", "中文", "付费", "金融数据|终端|证券", false, false, "", "从业者", "专业"),
+            R("东方财富 Choice 数据", "https://choice.eastmoney.com", "东方财富 Choice 金融数据终端", "证券", "数据库", "A", "中文", "付费", "金融数据|终端|证券", false, false, "", "从业者", "专业"),
+            R("大智慧金融终端", "https://www.gw.com.cn", "大智慧金融行情与终端", "证券", "工具", "B", "中文", "付费", "金融数据|终端|行情", false, false, "", "从业者", "专业"),
+            R("天眼查企业金融数据", "https://www.tianyancha.com", "企业工商与金融信息查询", "行业研究", "数据库", "A", "中文", "部分付费", "企业|数据|金融|查询", false, false, "", "从业者", "进阶"),
+            R("企查查行业报告", "https://www.qcc.com", "企业信息与行业数据查询", "行业研究", "数据库", "A", "中文", "部分付费", "企业|数据|行业|报告", false, false, "", "从业者", "进阶"),
+            R("理财魔方（智能投顾）", "https://www.licaifan.com", "智能投顾与资产配置工具", "资产配置", "工具", "B", "中文", "部分付费", "智能投顾|资产配置|工具", false, false, "", "投资者", "进阶"),
+            R("且慢基金组合工具", "https://qieman.com", "基金组合与长期投资工具", "基金", "工具", "A", "中文", "免费", "基金|组合|投资|工具", false, false, "", "投资者", "进阶"),
+            R("支付宝理财计算器", "支付宝App内搜索\"理财计算器\"", "支付宝理财计算工具", "金融基础", "工具", "B", "中文", "免费", "理财|计算器|工具", false, false, "", "零基础", "入门"),
+            R("MDN Web Docs", "https://developer.mozilla.org", "Web 开发权威参考文档", "编程", "官方资料", "S", "中英", "免费", "Web|JavaScript|HTML|CSS|文档", true, true, "Web 开发最权威的官方文档", "开发者", "进阶"),
+            R("freeCodeCamp", "https://www.freecodecamp.org", "免费交互式编程学习与项目训练", "编程", "课程", "S", "英文", "免费", "编程|Web|JavaScript|免费", true, true, "系统、免费且项目导向的编程学习平台", "零基础", "入门"),
+            R("GitHub Explore", "https://github.com/explore", "发现优秀开源项目与开发者资源", "编程", "社区", "A", "英文", "免费", "开源|项目|GitHub|社区", false, true, "发现高质量开源项目的重要入口", "开发者", "进阶"),
+            R("GeeksforGeeks", "https://www.geeksforgeeks.org", "算法、数据结构与编程教程", "编程", "网站", "A", "英文", "免费", "算法|数据结构|编程|教程", false, false, "", "开发者", "进阶"),
+            R("LeetCode", "https://leetcode.com", "算法刷题与面试准备平台", "算法", "题库", "S", "中英", "部分付费", "算法|刷题|面试|题库", false, true, "算法面试准备的事实标准平台", "开发者", "进阶"),
+            R("Codeforces", "https://codeforces.com", "国际算法竞赛平台", "算法", "题库", "A", "英文", "免费", "算法|竞赛|编程|题库", false, false, "", "竞赛者", "专业"),
+            R("洛谷", "https://www.luogu.com.cn", "中文算法竞赛刷题社区", "算法", "题库", "A", "中文", "免费", "算法|竞赛|题库|中文", false, false, "", "竞赛者", "入门"),
+            R("牛客网", "https://www.nowcoder.com", "程序员笔试面试与算法题库", "职业考试", "题库", "A", "中文", "部分付费", "算法|面试|题库|求职", false, false, "", "求职者", "进阶"),
+            R("The Algorithms", "https://the-algorithms.com", "开源算法实现集合", "算法", "教材", "A", "英文", "免费", "算法|开源|数据结构|代码", false, false, "", "开发者", "进阶"),
+            R("VisuAlgo", "https://visualgo.net", "算法与数据结构可视化教学", "算法", "工具", "A", "英文", "免费", "算法|数据结构|可视化|工具", false, false, "", "学生", "入门"),
+            R("OI Wiki", "https://oi-wiki.org", "中文算法竞赛知识库", "算法", "教材", "A", "中文", "免费", "算法|竞赛|C++|数据结构", false, true, "中文算法竞赛学习的重要资料", "竞赛者", "进阶"),
+            R("MIT OpenCourseWare - 计算机", "https://ocw.mit.edu", "MIT 开放课程，计算机科学经典课程", "计算机", "课程", "S", "英文", "免费", "计算机|大学|课程|MIT", true, true, "世界顶级高校计算机课程", "学生", "进阶"),
+            R("CS50", "https://cs50.harvard.edu", "哈佛大学计算机科学导论", "计算机", "课程", "S", "英文", "免费", "计算机|大学|课程|入门", true, true, "广受欢迎的计算机入门课程", "零基础", "入门"),
+            R("王道论坛", "https://www.cskaoyan.com", "计算机考研交流与资料社区", "考研", "社区", "A", "中文", "免费", "计算机|考研|社区|408", false, false, "", "考生", "进阶"),
+            R("中国计算机学会", "https://www.ccf.org.cn", "中国计算机学会官网", "计算机", "官方资料", "S", "中文", "免费", "计算机|学会|官方|竞赛", true, true, "国内计算机领域权威学会", "研究者", "专业"),
+            R("Python.org", "https://www.python.org", "Python 官方文档与下载", "Python", "官方资料", "S", "中英", "免费", "Python|官方|文档|编程", true, true, "Python 官方入口", "开发者", "入门"),
+            R("廖雪峰 Python 教程", "https://www.liaoxuefeng.com/wiki/1016959663602400", "中文 Python 入门教程", "Python", "教材", "A", "中文", "免费", "Python|教程|入门|中文", false, true, "经典中文 Python 入门教程", "零基础", "入门"),
+            R("Real Python", "https://realpython.com", "高质量 Python 教程与文章", "Python", "博客", "A", "英文", "部分付费", "Python|教程|博客|进阶", false, false, "", "开发者", "进阶"),
+            R("Awesome Python", "https://github.com/vinta/awesome-python", "Python 优质资源清单", "Python", "教材", "A", "英文", "免费", "Python|资源清单|开源", false, false, "", "开发者", "进阶"),
+            R("pandas 官方文档", "https://pandas.pydata.org/docs", "Pandas 数据分析库官方文档", "Python", "官方资料", "S", "英文", "免费", "Python|Pandas|数据分析|文档", true, true, "数据分析必备库的官方文档", "开发者", "进阶"),
+            R("NumPy 官方文档", "https://numpy.org/doc", "NumPy 数值计算库官方文档", "Python", "官方资料", "S", "英文", "免费", "Python|NumPy|数值计算|文档", true, true, "数值计算基础库官方文档", "开发者", "进阶"),
+            R("Matplotlib 官方文档", "https://matplotlib.org/stable", "Matplotlib 可视化库官方文档", "Python", "官方资料", "S", "英文", "免费", "Python|Matplotlib|可视化|文档", true, false, "数据可视化基础库官方文档", "开发者", "进阶"),
+            R("scikit-learn 官方文档", "https://scikit-learn.org/stable", "Scikit-learn 机器学习库官方文档", "Python", "官方资料", "S", "英文", "免费", "Python|机器学习|scikit-learn|文档", true, true, "传统机器学习库的权威文档", "开发者", "进阶"),
+            R("cppreference.com", "https://en.cppreference.com", "C++ 标准库权威参考", "C++", "官方资料", "S", "英文", "免费", "C++|STL|文档|标准库", false, true, "C++ 学习最权威的参考站点", "开发者", "进阶"),
+            R("LearnCpp", "https://www.learncpp.com", "系统化 C++ 在线教程", "C++", "教材", "A", "英文", "免费", "C++|教程|入门|进阶", false, false, "", "学生", "入门"),
+            R("C++ Primer", "https://www.informit.com/store/c-plus-plus-primer-9780321714114", "C++ 经典入门教材", "C++", "教材", "S", "英文", "付费", "C++|教材|经典|入门", false, true, "C++ 领域经典教材", "学生", "进阶"),
+            R("吴恩达机器学习课程", "https://www.coursera.org/learn/machine-learning", "Coursera 经典机器学习课程", "人工智能", "课程", "S", "中英", "部分付费", "机器学习|人工智能|课程|入门", false, true, "机器学习入门最经典课程之一", "零基础", "入门"),
+            R("fast.ai", "https://www.fast.ai", "深度学习实战课程与库", "人工智能", "课程", "A", "英文", "免费", "深度学习|人工智能|课程|实战", false, false, "", "开发者", "进阶"),
+            R("PyTorch 官方文档", "https://pytorch.org/docs", "PyTorch 深度学习框架官方文档", "人工智能", "官方资料", "S", "英文", "免费", "PyTorch|深度学习|官方|文档", true, true, "深度学习主流框架官方文档", "开发者", "进阶"),
+            R("Hugging Face", "https://huggingface.co", "模型、数据集与 AI 社区", "人工智能", "数据库", "A", "英文", "部分免费", "人工智能|模型|数据集|社区", false, true, "大模型时代的核心资源平台", "开发者", "进阶"),
+            R("动手学深度学习", "https://d2l.ai", "面向实践的深度学习教材与代码", "人工智能", "教材", "S", "中英", "免费", "深度学习|教材|实践|代码", false, true, "理论与实践结合的优秀教材", "学生", "进阶"),
+            R("Google AI", "https://ai.google", "Google AI 官方研究与实践资源", "人工智能", "官方资料", "S", "英文", "免费", "人工智能|Google|官方|研究", true, false, "Google AI 官方资源入口", "研究者", "专业"),
+            R("Kaggle", "https://www.kaggle.com", "数据科学竞赛、数据集与 Notebook", "数据分析", "数据集", "S", "英文", "免费", "数据科学|竞赛|数据集|实战", false, true, "数据科学实战与数据集的核心平台", "开发者", "进阶"),
+            R("DataCamp", "https://www.datacamp.com", "数据科学与分析交互式课程", "数据分析", "课程", "A", "英文", "部分付费", "数据分析|数据科学|课程|实战", false, false, "", "零基础", "入门"),
+            R("Mode SQL Tutorial", "https://mode.com/sql-tutorial", "SQL 数据分析交互式教程", "数据分析", "教材", "A", "英文", "免费", "SQL|数据分析|教程|入门", false, false, "", "零基础", "入门"),
+            R("阿里云天池", "https://tianchi.aliyun.com", "中文数据科学竞赛平台", "数据分析", "数据集", "A", "中文", "免费", "数据科学|竞赛|数据集|中文", false, false, "", "开发者", "进阶"),
+            R("和鲸社区", "https://www.heywhale.com", "数据科学中文社区与项目", "数据分析", "社区", "A", "中文", "部分免费", "数据科学|社区|数据集|中文", false, false, "", "开发者", "进阶"),
+            R("Khan Academy - 数学", "https://www.khanacademy.org/math", "免费数学课程，覆盖基础到高等", "数学", "课程", "S", "中英", "免费", "数学|课程|免费|入门", true, true, "系统化数学学习资源", "学生", "入门"),
+            R("MIT OpenCourseWare - 数学", "https://ocw.mit.edu/courses/mathematics", "MIT 数学开放课程", "数学", "课程", "S", "英文", "免费", "数学|大学|课程|MIT", true, true, "顶级高校数学课程", "学生", "专业"),
+            R("3Blue1Brown", "https://www.3blue1brown.com", "用可视化讲透数学概念", "数学", "视频", "S", "英文", "免费", "数学|可视化|视频|科普", false, true, "数学直觉培养的经典视频", "学生", "进阶"),
+            R("Wolfram Alpha", "https://www.wolframalpha.com", "数学计算与知识引擎", "数学", "工具", "A", "英文", "部分免费", "数学|计算|工具|查询", false, false, "", "学生", "进阶"),
+            R("Khan Academy - 统计学", "https://www.khanacademy.org/math/statistics-probability", "免费统计学与概率课程", "统计学", "课程", "S", "中英", "免费", "统计学|概率|课程|入门", true, true, "统计入门系统课程", "学生", "入门"),
+            R("Seeing Theory", "https://seeing-theory.brown.edu", "交互式概率统计可视化", "统计学", "教材", "A", "英文", "免费", "统计学|概率|可视化|教材", false, false, "", "学生", "进阶"),
+            R("OpenIntro Statistics", "https://www.openintro.org/book/os", "免费统计学教材", "统计学", "教材", "S", "英文", "免费", "统计学|教材|免费|入门", false, true, "高质量开放统计学教材", "学生", "入门"),
+            R("统计之都", "https://cosx.org", "中文统计社区与专业文章", "统计学", "社区", "A", "中文", "免费", "统计学|社区|中文|文章", false, false, "", "研究者", "专业"),
+            R("曼昆《经济学原理》", "https://www.cengage.com", "经济学经典入门教材", "经济学", "教材", "S", "中英", "付费", "经济学|教材|经典|入门", false, true, "经济学入门最经典教材之一", "学生", "入门"),
+            R("中国大学MOOC - 经济学", "https://www.icourse163.org", "国内高校经济学公开课程", "经济学", "课程", "S", "中文", "免费", "经济学|大学|课程|MOOC", true, true, "国内高校经济学课程", "学生", "入门"),
+            R("经济学人", "https://www.economist.com", "国际经济学与政治经济评论", "经济学", "网站", "A", "英文", "部分付费", "经济学|新闻|国际|评论", false, false, "", "研究者", "专业"),
+            R("中国人民银行", "http://www.pbc.gov.cn", "中国人民银行官网，货币与金融政策", "金融基础", "官方资料", "S", "中文", "免费", "央行|金融政策|官方|货币", true, true, "中国金融政策权威来源", "从业者", "专业"),
+            R("中国证监会", "http://www.csrc.gov.cn", "中国证券监督管理委员会官网", "证券", "官方资料", "S", "中文", "免费", "证券|监管|官方|政策", true, true, "证券市场权威监管机构", "从业者", "专业"),
+            R("国家金融监督管理总局", "https://www.nfra.gov.cn", "金融监督管理总局官网", "金融基础", "官方资料", "S", "中文", "免费", "金融|监管|官方|政策", true, true, "金融监管权威机构", "从业者", "专业"),
+            R("上海证券交易所", "http://www.sse.com.cn", "上交所官网与市场数据", "证券", "官方资料", "S", "中文", "免费", "交易所|股票|官方|市场", true, true, "中国主要证券交易所", "投资者", "专业"),
+            R("深圳证券交易所", "http://www.szse.cn", "深交所官网与市场数据", "证券", "官方资料", "S", "中文", "免费", "交易所|股票|官方|市场", true, true, "中国主要证券交易所", "投资者", "专业"),
+            R("北京证券交易所", "https://www.bse.cn", "北交所官网与市场数据", "证券", "官方资料", "S", "中文", "免费", "交易所|股票|官方|市场", true, true, "服务创新型中小企业的交易所", "投资者", "专业"),
+            R("中国证券投资基金业协会", "https://www.amac.org.cn", "基金业协会官网", "基金", "官方资料", "S", "中文", "免费", "基金|协会|官方|监管", true, true, "基金行业官方组织", "从业者", "专业"),
+            R("中国期货业协会", "http://www.cfachina.org", "期货业协会官网", "职业考试", "官方资料", "S", "中文", "免费", "期货|协会|官方|职业考试", true, false, "期货行业官方组织", "从业者", "专业"),
+            R("香港交易所", "https://www.hkex.com.hk", "港交所官网与市场数据", "证券", "官方资料", "S", "中英", "免费", "交易所|港股|官方|市场", true, true, "亚洲重要国际交易所", "投资者", "专业"),
+            R("CME Group", "https://www.cmegroup.com", "芝加哥商品交易所集团", "证券", "官方资料", "S", "英文", "免费", "交易所|期货|衍生品|官方", true, false, "全球最大衍生品交易所之一", "从业者", "专业"),
+            R("世界银行", "https://www.worldbank.org", "全球经济发展数据与研究", "经济学", "官方资料", "S", "中英", "免费", "世界银行|经济|数据|研究", true, true, "全球经济数据权威来源", "研究者", "专业"),
+            R("国际货币基金组织 IMF", "https://www.imf.org", "IMF 全球经济数据与报告", "经济学", "官方资料", "S", "中英", "免费", "IMF|经济|数据|报告", true, true, "国际经济数据与政策权威来源", "研究者", "专业"),
+            R("OECD", "https://www.oecd.org", "经合组织经济与社会数据", "经济学", "官方资料", "S", "英文", "免费", "OECD|经济|数据|研究", true, false, "发达国家经济数据重要来源", "研究者", "专业"),
+            R("国际清算银行 BIS", "https://www.bis.org", "BIS 金融稳定与银行数据", "经济学", "官方资料", "S", "英文", "免费", "BIS|金融|银行|数据", true, true, "全球金融稳定与银行研究权威机构", "研究者", "专业"),
+            R("FRED", "https://fred.stlouisfed.org", "美联储经济数据库", "经济学", "数据库", "S", "英文", "免费", "FRED|经济数据|宏观|数据库", true, true, "宏观经济数据查询的重要工具", "研究者", "专业"),
+            R("SEC EDGAR", "https://www.sec.gov/edgar", "美国上市公司披露数据库", "证券", "官方资料", "S", "英文", "免费", "SEC|财报|公司|披露", true, true, "美国上市公司信息披露官方数据库", "从业者", "专业"),
+            R("罗斯《公司理财》", "https://www.mheducation.com", "公司金融经典教材", "公司金融", "教材", "S", "中英", "付费", "公司金融|教材|经典|估值", false, true, "公司金融领域经典教材", "学生", "专业"),
+            R("博迪《投资学》", "https://www.mheducation.com", "投资学经典教材", "投资学", "教材", "S", "中英", "付费", "投资学|教材|经典|资产定价", false, true, "投资学经典教材", "学生", "专业"),
+            R("赫尔《期权、期货及其他衍生品》", "https://www.pearson.com", "金融工程经典教材", "金融工程", "教材", "S", "中英", "付费", "金融工程|衍生品|教材|经典", false, true, "衍生品领域经典教材", "学生", "专业"),
+            R("格雷厄姆《聪明的投资者》", "https://www.harpercollins.com", "价值投资经典著作", "投资学", "教材", "S", "中英", "付费", "投资|价值投资|教材|经典", false, true, "价值投资奠基之作", "投资者", "进阶"),
+            R("巴菲特致股东信", "https://www.berkshirehathaway.com/letters/letters.html", "伯克希尔股东信原文", "投资学", "官方资料", "A", "英文", "免费", "巴菲特|价值投资|股东信|官方", true, true, "学习长期投资思维的一手资料", "投资者", "进阶"),
+            R("聚宽", "https://www.joinquant.com", "中文量化投资研究平台", "量化投资", "工具", "A", "中文", "部分付费", "量化|回测|投资|工具", false, false, "", "开发者", "专业"),
+            R("优矿", "https://uqer.datayes.com", "量化投资研究平台", "量化投资", "工具", "A", "中文", "部分付费", "量化|回测|数据|工具", false, false, "", "开发者", "专业"),
+            R("BigQuant", "https://bigquant.com", "人工智能量化投资平台", "量化投资", "工具", "A", "中文", "部分付费", "量化|人工智能|回测|工具", false, false, "", "开发者", "专业"),
+            R("QuantConnect", "https://www.quantconnect.com", "开源算法交易平台", "量化投资", "工具", "A", "英文", "部分付费", "量化|算法交易|回测|工具", false, false, "", "开发者", "专业"),
+            R("Tushare", "https://tushare.pro", "中文金融数据 API", "量化投资", "API", "A", "中文", "部分免费", "量化|数据|API|金融", false, false, "", "开发者", "进阶"),
+            R("AkShare", "https://akshare.akfamily.xyz", "开源中文金融数据接口", "量化投资", "API", "A", "中文", "免费", "量化|数据|API|开源", false, true, "免费开源中文金融数据工具", "开发者", "进阶"),
+            R("Yahoo Finance", "https://finance.yahoo.com", "全球市场行情与数据", "投资学", "数据库", "A", "英文", "免费", "市场|行情|数据|投资", false, false, "", "投资者", "进阶"),
+            R("Alpha Vantage", "https://www.alphavantage.co", "免费金融数据 API", "量化投资", "API", "A", "英文", "部分免费", "金融数据|API|量化|免费", false, false, "", "开发者", "进阶"),
+            R("中国注册会计师协会", "https://www.cicpa.org.cn", "中国注册会计师协会官网", "会计", "官方资料", "S", "中文", "免费", "会计|CPA|官方|职业考试", true, true, "会计职业资格权威机构", "从业者", "专业"),
+            R("全国会计资格评价网", "http://kzp.mof.gov.cn", "会计专业技术资格考试官网", "会计", "官方资料", "S", "中文", "免费", "会计|考试|官方|职称", true, true, "会计职称考试官方入口", "考生", "专业"),
+            R("剑桥词典", "https://dictionary.cambridge.org", "权威英英与英中词典", "英语", "官方资料", "S", "中英", "免费", "英语|词典|官方|词汇", true, true, "权威英语学习工具", "零基础", "入门"),
+            R("牛津词典", "https://www.oxfordlearnersdictionaries.com", "牛津学习者词典", "英语", "官方资料", "S", "英文", "免费", "英语|词典|官方|词汇", true, false, "权威英语学习者词典", "学生", "入门"),
+            R("BBC Learning English", "https://www.bbc.co.uk/learningenglish", "BBC 英语学习资源", "英语", "网站", "A", "英文", "免费", "英语|BBC|官方|听力", true, true, "高质量免费英语学习资源", "零基础", "入门"),
+            R("TED", "https://www.ted.com", "高质量演讲与英语学习素材", "英语", "视频", "S", "中英", "免费", "英语|演讲|视频|听力", false, true, "适合练习听力和扩展视野", "通用", "进阶"),
+            R("Google Scholar", "https://scholar.google.com", "学术文献搜索", "科研", "数据库", "S", "英文", "免费", "学术|论文|搜索|文献", false, true, "学术文献检索的通用入口", "研究者", "专业"),
+            R("中国知网 CNKI", "https://www.cnki.net", "中文学术论文与文献数据库", "论文", "数据库", "S", "中文", "部分付费", "论文|中文|数据库|文献", false, true, "中文学术文献重要数据库", "研究者", "专业"),
+            R("万方数据", "https://www.wanfangdata.com.cn", "中文学术文献数据库", "论文", "数据库", "A", "中文", "部分付费", "论文|中文|数据库|文献", false, false, "", "研究者", "专业"),
+            R("维普", "http://www.cqvip.com", "中文期刊论文数据库", "论文", "数据库", "A", "中文", "部分付费", "论文|中文|期刊|文献", false, false, "", "研究者", "专业"),
+            R("PubMed", "https://pubmed.ncbi.nlm.nih.gov", "生物医学文献数据库", "科研", "数据库", "S", "英文", "免费", "医学|论文|数据库|文献", true, true, "生物医学领域权威文献库", "研究者", "专业"),
+            R("arXiv", "https://arxiv.org", "物理学、数学、计算机等领域预印本", "科研", "数据库", "S", "英文", "免费", "预印本|论文|学术|数据库", true, true, "理工科预印本核心平台", "研究者", "专业"),
+            R("ResearchGate", "https://www.researchgate.net", "研究者社交与论文共享平台", "科研", "社区", "A", "英文", "免费", "学术|社区|论文|研究者", false, false, "", "研究者", "专业"),
+            R("Web of Science", "https://www.webofscience.com", "引文索引与学术文献检索", "科研", "数据库", "S", "英文", "付费", "学术|引文|数据库|检索", false, false, "", "研究者", "专业"),
+            R("Overleaf", "https://www.overleaf.com", "在线 LaTeX 论文协作编辑", "论文", "工具", "A", "英文", "部分免费", "LaTeX|论文|协作|工具", false, true, "论文写作与协作的高效工具", "研究者", "进阶"),
+            R("Grammarly", "https://www.grammarly.com", "英文写作语法检查工具", "英语", "工具", "A", "英文", "部分付费", "英语|写作|语法|工具", false, false, "", "学生", "进阶"),
+            R("中国研究生招生信息网", "https://yz.chsi.com.cn", "全国研究生招生官方信息平台", "考研", "官方资料", "S", "中文", "免费", "考研|官方|招生|报名", true, true, "考研报名与招生权威入口", "考生", "专业"),
+            R("中华人民共和国教育部", "http://www.moe.gov.cn", "教育部官网", "职业考试", "官方资料", "S", "中文", "免费", "教育部|官方|政策|考试", true, true, "教育政策权威来源", "学生", "专业"),
+            R("中国教育考试网", "https://www.neea.edu.cn", "国家教育考试官方平台", "职业考试", "官方资料", "S", "中文", "免费", "考试|官方|四六级|报名", true, true, "国家教育考试权威入口", "考生", "专业"),
+            R("考研帮", "https://www.kaoyan.com", "考研信息与备考社区", "考研", "社区", "A", "中文", "免费", "考研|社区|信息|备考", false, false, "", "考生", "入门"),
+            R("粉笔考研", "https://www.fenbi.com", "考研题库与课程", "考研", "题库", "A", "中文", "部分付费", "考研|题库|课程|刷题", false, false, "", "考生", "进阶"),
+            R("银行业专业人员职业资格考试", "https://www.china-cba.net", "银行业职业资格考试", "职业考试", "官方资料", "S", "中文", "免费", "银行|职业考试|官方", true, true, "银行业职业资格官方考试", "从业者", "专业"),
+            R("中国注册税务师协会", "http://www.cctaa.cn", "税务师职业资格考试官网", "职业考试", "官方资料", "S", "中文", "免费", "税务师|职业考试|官方", true, false, "税务师职业资格官方入口", "从业者", "专业"),
+            R("全国大学英语四、六级考试", "https://cet.neea.edu.cn", "四六级考试官方平台", "职业考试", "官方资料", "S", "中文", "免费", "四六级|英语|考试|官方", true, true, "大学英语四六级官方入口", "学生", "入门"),
+            R("国家统计局", "https://www.stats.gov.cn", "中国官方统计数据", "经济学", "官方资料", "S", "中文", "免费", "统计|数据|官方|宏观", true, true, "中国官方统计数据权威来源", "研究者", "专业"),
+            R("中华人民共和国财政部", "http://www.mof.gov.cn", "财政部官网", "经济学", "官方资料", "S", "中文", "免费", "财政|政策|官方|经济", true, false, "财政政策权威来源", "从业者", "专业")
+        ];
+
+        const RESOURCES = RAW.map(function (item, index) {
+            item.id = "r" + (index + 1);
+            return item;
+        });
+
+        const CATEGORY_ORDER = [
+            "编程", "算法", "计算机", "Python", "C++", "人工智能", "数据分析",
+            "数学", "统计学", "经济学", "金融基础", "投资学", "股票", "基金",
+            "债券", "证券", "公司金融", "金融工程", "量化投资", "资产配置",
+            "风险管理", "行为金融", "金融科技", "行业研究", "基金研究", "券商研究",
+            "CFA", "FRM", "会计", "英语", "科研", "论文", "考研", "职业考试"
+        ];
+
+        const TYPE_ORDER = [
+            "课程", "教材", "网站", "官方资料", "论文", "研究报告", "数据库",
+            "工具", "博客", "视频", "社区", "题库", "数据集", "API", "学习路线"
+        ];
+
+        const HOT_DOMAINS = ["Python", "人工智能", "数据分析", "金融基础", "投资学", "量化投资", "考研", "会计"];
+        const HOT_SEARCHES = ["Python", "机器学习", "量化投资", "考研", "CFA", "数据分析", "基金", "算法"];
+
+        const PATHS = [
+            {
+                id: "python-data-ml",
+                title: "Python 入门 → 数据分析 → 机器学习",
+                description: "适合想从零开始掌握 Python 并进入数据与机器学习方向的学习者。",
+                domain: "Python",
+                nodes: [
+                    { label: "Python 基础", keywords: ["Python", "编程", "入门"] },
+                    { label: "数据结构", keywords: ["数据结构", "算法"] },
+                    { label: "NumPy", keywords: ["NumPy", "数值计算"] },
+                    { label: "Pandas", keywords: ["Pandas", "数据分析"] },
+                    { label: "数据分析", keywords: ["数据分析", "数据科学"] },
+                    { label: "机器学习", keywords: ["机器学习", "人工智能"] }
+                ]
+            },
+            {
+                id: "finance-quant",
+                title: "金融入门 → 投资 → 量化",
+                description: "从经济与会计基础出发，逐步进入投资、公司金融与量化研究。",
+                domain: "金融",
+                nodes: [
+                    { label: "经济学", keywords: ["经济学", "宏观", "微观"] },
+                    { label: "会计", keywords: ["会计", "财务报表"] },
+                    { label: "金融市场", keywords: ["金融市场", "金融基础"] },
+                    { label: "投资学", keywords: ["投资学", "投资", "证券"] },
+                    { label: "股票 / 基金", keywords: ["股票", "基金"] },
+                    { label: "公司金融", keywords: ["公司金融", "公司理财"] },
+                    { label: "估值", keywords: ["估值", "价值"] },
+                    { label: "资产配置", keywords: ["资产配置", "组合"] },
+                    { label: "量化", keywords: ["量化", "金融工程", "回测"] }
+                ]
+            },
+            {
+                id: "cpp-algorithm",
+                title: "C++ 与算法竞赛路线",
+                description: "面向算法竞赛与面试算法训练，从 C++ 基础到常见算法专题。",
+                domain: "算法",
+                nodes: [
+                    { label: "C++ 基础", keywords: ["C++", "编程", "入门"] },
+                    { label: "STL", keywords: ["STL", "C++", "标准库"] },
+                    { label: "数组", keywords: ["数组", "数据结构"] },
+                    { label: "排序", keywords: ["排序", "算法"] },
+                    { label: "二分", keywords: ["二分", "算法"] },
+                    { label: "前缀和", keywords: ["前缀和", "算法"] },
+                    { label: "贪心", keywords: ["贪心", "算法"] },
+                    { label: "DFS / BFS", keywords: ["DFS", "BFS", "图论"] },
+                    { label: "动态规划", keywords: ["动态规划", "DP"] },
+                    { label: "图论", keywords: ["图论", "算法"] }
+                ]
+            },
+            {
+                id: "research-exam",
+                title: "科研与考研路线",
+                description: "覆盖英语、文献检索、论文写作和考研准备，适合学术进阶与备考。",
+                domain: "科研",
+                nodes: [
+                    { label: "英语基础", keywords: ["英语", "词汇", "听力"] },
+                    { label: "文献检索", keywords: ["文献", "论文", "数据库"] },
+                    { label: "论文写作", keywords: ["论文", "学术写作", "LaTeX"] },
+                    { label: "考研基础", keywords: ["考研", "高数", "英语"] },
+                    { label: "专业课", keywords: ["专业课", "金融", "计算机"] },
+                    { label: "复试准备", keywords: ["复试", "面试", "求职"] }
+                ]
+            }
+        ];
+
+        const LS = {
+            favorites: "krn_favorites_v1",
+            recent: "krn_recent_v1",
+            theme: "krn_theme_v1",
+            submitted: "krn_submitted_v1",
+            broken: "krn_broken_v1"
+        };
+
+        const state = {
+            section: "home",
+            query: "",
+            category: "全部",
+            type: "全部",
+            level: "全部",
+            price: "全部",
+            language: "全部",
+            tags: new Set(),
+            sort: "recommended",
+            quick: ""
+        };
+
+        function loadJSON(key, fallback) {
+            try {
+                const raw = localStorage.getItem(key);
+                return raw ? JSON.parse(raw) : fallback;
+            } catch (error) {
+                return fallback;
+            }
+        }
+
+        function saveJSON(key, value) {
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
+            } catch (error) {
+                // localStorage 不可用时静默失败
+            }
+        }
+
+        function escapeHtml(value) {
+            return String(value == null ? "" : value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function toast(message) {
+            const el = document.getElementById("toast");
+            el.textContent = message;
+            el.classList.add("show");
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(function () {
+                el.classList.remove("show");
+            }, 2200);
+        }
+
+        function getFavorites() {
+            return loadJSON(LS.favorites, []);
+        }
+
+        function isFavorite(id) {
+            return getFavorites().indexOf(id) !== -1;
+        }
+
+        function toggleFavorite(id) {
+            let favorites = getFavorites();
+            const index = favorites.indexOf(id);
+            if (index === -1) {
+                favorites.unshift(id);
+                toast("已加入收藏");
+            } else {
+                favorites.splice(index, 1);
+                toast("已取消收藏");
+            }
+            saveJSON(LS.favorites, favorites);
+            renderFavoritesIfActive();
+            renderAllHome();
+            renderLibrary();
+            refreshCardFavState(id);
+        }
+
+        function getRecent() {
+            return loadJSON(LS.recent, []);
+        }
+
+        function addRecent(id) {
+            let recent = getRecent();
+            recent = recent.filter(function (item) { return item !== id; });
+            recent.unshift(id);
+            recent = recent.slice(0, 12);
+            saveJSON(LS.recent, recent);
+        }
+
+        function getResource(id) {
+            return RESOURCES.find(function (resource) { return resource.id === id; });
+        }
+
+        function normalize(value) {
+            return String(value || "").toLowerCase();
+        }
+
+        function resourceHaystack(resource) {
+            return [
+                resource.name,
+                resource.description,
+                resource.category,
+                resource.type,
+                resource.level,
+                resource.language,
+                resource.price,
+                resource.audience,
+                resource.difficulty,
+                resource.reason,
+                resource.tags.join(" ")
+            ].join(" ").toLowerCase();
+        }
+
+        function matchesQuery(resource) {
+            if (!state.query.trim()) {
+                return true;
+            }
+            const tokens = state.query.trim().toLowerCase().split(/\s+/);
+            const haystack = resourceHaystack(resource);
+            return tokens.every(function (token) {
+                return haystack.indexOf(token) !== -1;
+            });
+        }
+
+        function matchesQuick(resource) {
+            if (!state.quick) {
+                return true;
+            }
+            if (state.quick === "official") {
+                return resource.official;
+            }
+            if (state.quick === "entry") {
+                return resource.difficulty === "入门" || resource.audience.indexOf("零基础") !== -1;
+            }
+            if (state.quick === "premium") {
+                return resource.level === "S" || resource.level === "A";
+            }
+            if (state.quick === "free") {
+                return resource.price.indexOf("免费") !== -1;
+            }
+            if (state.quick === "popular") {
+                return resource.recommended || resource.tags.indexOf("热门") !== -1;
+            }
+            return true;
+        }
+
+        function matchesFilters(resource) {
+            if (state.category !== "全部" && resource.category !== state.category) {
+                return false;
+            }
+            if (state.type !== "全部" && resource.type !== state.type) {
+                return false;
+            }
+            if (state.level !== "全部" && resource.level !== state.level) {
+                return false;
+            }
+            if (state.language !== "全部" && resource.language.indexOf(state.language) === -1) {
+                return false;
+            }
+            if (state.price === "免费" && resource.price.indexOf("免费") === -1) {
+                return false;
+            }
+            if (state.price === "部分付费" && resource.price.indexOf("部分") === -1 && resource.price.indexOf("付费") === -1) {
+                return false;
+            }
+            if (state.price === "付费" && resource.price.indexOf("付费") === -1) {
+                return false;
+            }
+            const activeTags = Array.from(state.tags);
+            if (activeTags.length && !activeTags.every(function (tag) { return resource.tags.indexOf(tag) !== -1; })) {
+                return false;
+            }
+            return matchesQuick(resource);
+        }
+
+        function getFilteredResources() {
+            const filtered = RESOURCES.filter(function (resource) {
+                return matchesQuery(resource) && matchesFilters(resource);
+            });
+            const levelRank = { S: 0, A: 1, B: 2 };
+            const sorted = filtered.slice();
+            if (state.sort === "newest" || state.quick === "newest") {
+                sorted.sort(function (a, b) { return String(b.added).localeCompare(String(a.added)); });
+            } else if (state.sort === "level") {
+                sorted.sort(function (a, b) { return (levelRank[a.level] || 9) - (levelRank[b.level] || 9); });
+            } else if (state.sort === "name") {
+                sorted.sort(function (a, b) { return a.name.localeCompare(b.name, "zh-CN"); });
+            } else {
+                sorted.sort(function (a, b) {
+                    if (b.recommended !== a.recommended) return (b.recommended ? 1 : 0) - (a.recommended ? 1 : 0);
+                    return (levelRank[a.level] || 9) - (levelRank[b.level] || 9);
+                });
+            }
+            return sorted;
+        }
+
+        function badgeHTML(resource) {
+            const level = resource.level.toLowerCase();
+            return [
+                '<span class="badge level-' + level + '">' + resource.level + "级</span>",
+                resource.official ? '<span class="badge badge-official">官方</span>' : "",
+                resource.recommended ? '<span class="badge badge-rec">精选</span>' : "",
+                '<span class="badge badge-type">' + escapeHtml(resource.type) + "</span>"
+            ].join("");
+        }
+
+        function cardHTML(resource) {
+            const fav = isFavorite(resource.id);
+            const tags = resource.tags.slice(0, 4).map(function (tag) {
+                return '<button class="tag" data-action="toggle-tag" data-tag="' + escapeHtml(tag) + '">' + escapeHtml(tag) + "</button>";
+            }).join("");
+            const reason = resource.reason ? '<p class="card-reason"><b>推荐理由：</b>' + escapeHtml(resource.reason) + "</p>" : "";
+            return [
+                '<article class="resource-card" data-id="' + resource.id + '">',
+                '<div class="card-head">',
+                '<div class="badges">' + badgeHTML(resource) + "</div>",
+                '<button class="fav-btn ' + (fav ? "active" : "") + '" data-action="fav" title="收藏">' + (fav ? "★" : "☆") + "</button>",
+                "</div>",
+                '<h3 class="card-name">' + escapeHtml(resource.name) + "</h3>",
+                '<p class="card-desc">' + escapeHtml(resource.description) + "</p>",
+                '<div class="card-meta">',
+                "<span>" + escapeHtml(resource.category) + "</span>",
+                "<span>" + escapeHtml(resource.language) + "</span>",
+                "<span>" + escapeHtml(resource.price) + "</span>",
+                "<span>" + escapeHtml(resource.difficulty) + "</span>",
+                "</div>",
+                '<div class="card-tags">' + tags + "</div>",
+                reason,
+                '<div class="card-actions">',
+                '<a class="btn btn-primary btn-sm" href="' + escapeHtml(resource.url) + '" target="_blank" rel="noopener" data-action="visit">访问</a>',
+                '<button class="btn btn-ghost btn-sm" data-action="detail">详情</button>',
+                '<button class="btn btn-ghost btn-sm" data-action="fav">' + (fav ? "已收藏" : "收藏") + "</button>",
+                "</div>",
+                "</article>"
+            ].join("");
+        }
+
+        function renderCards(resources, containerId) {
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.innerHTML = resources.map(cardHTML).join("");
+            }
+        }
+
+        function emptyHTML(message, suggestion) {
+            return [
+                '<div class="empty-state">',
+                '<div class="emoji">🔍</div>',
+                "<p>" + escapeHtml(message) + "</p>",
+                suggestion ? "<p>" + escapeHtml(suggestion) + "</p>" : "",
+                "</div>"
+            ].join("");
+        }
+
+        function renderStats() {
+            const total = RESOURCES.length;
+            const officialCount = RESOURCES.filter(function (resource) { return resource.official; }).length;
+            const freeCount = RESOURCES.filter(function (resource) { return resource.price.indexOf("免费") !== -1; }).length;
+            const recommendedCount = RESOURCES.filter(function (resource) { return resource.recommended; }).length;
+            document.getElementById("stats").innerHTML = [
+                '<div class="stat"><b>' + total + "</b><span>收录资源</span></div>",
+                '<div class="stat"><b>' + officialCount + "</b><span>官方资源</span></div>",
+                '<div class="stat"><b>' + freeCount + "</b><span>免费资源</span></div>",
+                '<div class="stat"><b>' + recommendedCount + "</b><span>精选资源</span></div>",
+                '<div class="stat"><b>' + PATHS.length + "</b><span>学习路线</span></div>"
+            ].join("");
+        }
+
+        function renderHotSearches() {
+            document.getElementById("hotSearches").innerHTML = [
+                '<span class="label">热门搜索：</span>',
+                HOT_SEARCHES.map(function (term) {
+                    return '<button class="chip" data-action="hot-search" data-query="' + escapeHtml(term) + '">' + escapeHtml(term) + "</button>";
+                }).join("")
+            ].join("");
+        }
+
+        function renderQuickEntries() {
+            const entries = [
+                { label: "🏛 官方资源", quick: "official" },
+                { label: "🌱 入门必看", quick: "entry" },
+                { label: "⭐ 精品资源", quick: "premium" },
+                { label: "🆓 免费资源", quick: "free" },
+                { label: "🕒 最新加入", quick: "newest" },
+                { label: "🔥 热门资源", quick: "popular" }
+            ];
+            document.getElementById("quickEntries").innerHTML = entries.map(function (entry) {
+                return '<button class="quick-entry" data-quick="' + entry.quick + '">' + entry.label + "</button>";
+            }).join("");
+        }
+
+        function renderHotDomains() {
+            const counts = {};
+            RESOURCES.forEach(function (resource) {
+                counts[resource.category] = (counts[resource.category] || 0) + 1;
+            });
+            document.getElementById("hotDomains").innerHTML = HOT_DOMAINS.map(function (category) {
+                return [
+                    '<button class="domain-card" data-action="domain" data-category="' + escapeHtml(category) + '">',
+                    "<b>" + escapeHtml(category) + "</b>",
+                    "<span>" + (counts[category] || 0) + " 个资源</span>",
+                    "</button>"
+                ].join("");
+            }).join("");
+        }
+
+        function renderFeatured() {
+            const featured = RESOURCES.filter(function (resource) {
+                return resource.recommended && (resource.level === "S" || resource.level === "A");
+            }).sort(function (a, b) {
+                return (b.level === "S" ? 1 : 0) - (a.level === "S" ? 1 : 0);
+            }).slice(0, 12);
+            renderCards(featured, "featuredGrid");
+        }
+
+        function renderToday() {
+            const pool = RESOURCES.filter(function (resource) {
+                return resource.recommended || resource.level === "S";
+            });
+            const date = new Date();
+            const seed = date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+            const picks = [];
+            const used = {};
+            let cursor = seed;
+            while (picks.length < 3 && picks.length < pool.length) {
+                cursor = (cursor * 9301 + 49297) % 233280;
+                const index = cursor % pool.length;
+                if (!used[index]) {
+                    used[index] = true;
+                    picks.push(pool[index]);
+                }
+            }
+            renderCards(picks, "todayGrid");
+        }
+
+        function renderLatest() {
+            const latest = RESOURCES.slice().sort(function (a, b) {
+                return String(b.added).localeCompare(String(a.added));
+            }).slice(0, 8);
+            renderCards(latest, "latestGrid");
+        }
+
+        function renderPathPreview() {
+            renderPathCards(PATHS.slice(0, 3), "pathPreview");
+        }
+
+        function renderAllPaths() {
+            renderPathCards(PATHS, "allPaths");
+        }
+
+        function renderPathCards(paths, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = paths.map(function (path) {
+                const nodes = path.nodes.map(function (node, index) {
+                    return [
+                        index > 0 ? '<span class="path-arrow">→</span>' : "",
+                        '<button class="path-node" data-action="path-node" data-path-id="' + escapeHtml(path.id) + '" data-node-index="' + index + '">' + escapeHtml(node.label) + "</button>"
+                    ].join("");
+                }).join("");
+                return [
+                    '<article class="path-card">',
+                    '<span class="badge badge-type">' + escapeHtml(path.domain) + "</span>",
+                    "<h3>" + escapeHtml(path.title) + "</h3>",
+                    "<p>" + escapeHtml(path.description) + "</p>",
+                    '<div class="path-flow">' + nodes + "</div>",
+                    "</article>"
+                ].join("");
+            }).join("");
+        }
+
+        function renderLibrary() {
+            const filtered = getFilteredResources();
+            document.getElementById("resultCount").innerHTML = "共找到 <b>" + filtered.length + "</b> 个资源";
+            if (filtered.length) {
+                document.getElementById("resourceGrid").style.display = "grid";
+                document.getElementById("emptyState").innerHTML = "";
+                renderCards(filtered, "resourceGrid");
+            } else {
+                document.getElementById("resourceGrid").style.display = "none";
+                document.getElementById("emptyState").innerHTML = emptyHTML(
+                    "没有找到匹配的资源。",
+                    "试试缩短关键词、切换学习领域或清空筛选条件。"
+                );
+            }
+            renderTagCloud();
+        }
+
+        function renderTagCloud() {
+            const counts = {};
+            RESOURCES.forEach(function (resource) {
+                resource.tags.forEach(function (tag) {
+                    counts[tag] = (counts[tag] || 0) + 1;
+                });
+            });
+            const tags = Object.keys(counts).sort(function (a, b) {
+                return counts[b] - counts[a];
+            }).slice(0, 45);
+            document.getElementById("tagCloud").innerHTML = tags.map(function (tag) {
+                const active = state.tags.has(tag) ? " active" : "";
+                return '<button class="chip' + active + '" data-action="toggle-tag" data-tag="' + escapeHtml(tag) + '">' + escapeHtml(tag) + "</button>";
+            }).join("");
+        }
+
+        function renderFavoritesIfActive() {
+            if (state.section !== "favorites") {
+                return;
+            }
+            renderFavorites();
+        }
+
+        function renderFavorites() {
+            const favorites = getFavorites().map(getResource).filter(Boolean);
+            const recent = getRecent().map(getResource).filter(Boolean);
+            document.getElementById("favoriteGrid").innerHTML = "";
+            document.getElementById("favoriteEmpty").innerHTML = "";
+            document.getElementById("recentGrid").innerHTML = "";
+            document.getElementById("recentEmpty").innerHTML = "";
+            if (favorites.length) {
+                renderCards(favorites, "favoriteGrid");
+            } else {
+                document.getElementById("favoriteEmpty").innerHTML = emptyHTML("还没有收藏任何资源。", "点击资源卡片上的收藏按钮即可保存。");
+            }
+            if (recent.length) {
+                renderCards(recent, "recentGrid");
+            } else {
+                document.getElementById("recentEmpty").innerHTML = emptyHTML("还没有浏览记录。", "打开资源详情或访问资源后会自动记录。");
+            }
+        }
+
+        function renderSubmitted() {
+            const submitted = RESOURCES.filter(function (resource) { return resource.source === "user"; });
+            if (submitted.length) {
+                renderCards(submitted, "submittedGrid");
+                document.getElementById("submittedEmpty").innerHTML = "";
+            } else {
+                document.getElementById("submittedGrid").innerHTML = "";
+                document.getElementById("submittedEmpty").innerHTML = emptyHTML("还没有本地推荐记录。");
+            }
+        }
+
+        function refreshCardFavState(id) {
+            const cards = document.querySelectorAll('.resource-card[data-id="' + id + '"]');
+            const fav = isFavorite(id);
+            cards.forEach(function (card) {
+                const favBtn = card.querySelector(".fav-btn");
+                const favText = card.querySelector('[data-action="fav"].btn');
+                if (favBtn) {
+                    favBtn.classList.toggle("active", fav);
+                    favBtn.textContent = fav ? "★" : "☆";
+                }
+                if (favText) {
+                    favText.textContent = fav ? "已收藏" : "收藏";
+                }
+            });
+        }
+
+        function renderAllHome() {
+            renderStats();
+            renderHotSearches();
+            renderQuickEntries();
+            renderHotDomains();
+            renderFeatured();
+            renderToday();
+            renderLatest();
+            renderPathPreview();
+        }
+
+        function renderFilters() {
+            const categorySelect = document.getElementById("filterCategory");
+            const typeSelect = document.getElementById("filterType");
+            const categories = CATEGORY_ORDER.filter(function (category) {
+                return RESOURCES.some(function (resource) { return resource.category === category; });
+            });
+            const types = TYPE_ORDER.filter(function (type) {
+                return RESOURCES.some(function (resource) { return resource.type === type; });
+            });
+            categorySelect.innerHTML = ['<option value="全部">全部领域</option>'].concat(categories.map(function (category) {
+                return '<option value="' + escapeHtml(category) + '">' + escapeHtml(category) + "</option>";
+            })).join("");
+            typeSelect.innerHTML = ['<option value="全部">全部类型</option>'].concat(types.map(function (type) {
+                return '<option value="' + escapeHtml(type) + '">' + escapeHtml(type) + "</option>";
+            })).join("");
+
+            const subCategory = document.getElementById("subCategory");
+            subCategory.innerHTML = categories.map(function (category) {
+                return '<option value="' + escapeHtml(category) + '">' + escapeHtml(category) + "</option>";
+            }).join("");
+            const subType = document.getElementById("subType");
+            subType.innerHTML = types.map(function (type) {
+                return '<option value="' + escapeHtml(type) + '">' + escapeHtml(type) + "</option>";
+            }).join("");
+        }
+
+        function showSection(section) {
+            state.section = section;
+            document.querySelectorAll(".page-section").forEach(function (el) {
+                el.classList.remove("active");
+            });
+            const target = document.getElementById(section);
+            if (target) {
+                target.classList.add("active");
+            }
+            document.querySelectorAll(".nav-link").forEach(function (el) {
+                el.classList.toggle("active", el.getAttribute("data-section-link") === section);
+            });
+            if (section === "library") {
+                renderLibrary();
+            }
+            if (section === "paths") {
+                renderAllPaths();
+            }
+            if (section === "favorites") {
+                renderFavorites();
+            }
+            if (section === "submit") {
+                renderSubmitted();
+            }
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function openLibrary() {
+            showSection("library");
+        }
+
+        function applyQuickFilter(quick) {
+            state.quick = quick;
+            state.query = "";
+            state.category = "全部";
+            state.type = "全部";
+            state.level = "全部";
+            state.price = "全部";
+            state.language = "全部";
+            state.tags.clear();
+            state.sort = quick === "newest" ? "newest" : "recommended";
+            syncFilterInputs();
+            document.getElementById("searchInput").value = "";
+            document.getElementById("searchHint").textContent = "";
+            openLibrary();
+        }
+
+        function syncFilterInputs() {
+            document.getElementById("filterCategory").value = state.category;
+            document.getElementById("filterType").value = state.type;
+            document.getElementById("filterLevel").value = state.level;
+            document.getElementById("filterPrice").value = state.price;
+            document.getElementById("filterLanguage").value = state.language;
+            document.getElementById("sortSelect").value = state.sort;
+        }
+
+        function resetFilters() {
+            state.query = "";
+            state.category = "全部";
+            state.type = "全部";
+            state.level = "全部";
+            state.price = "全部";
+            state.language = "全部";
+            state.tags.clear();
+            state.sort = "recommended";
+            state.quick = "";
+            syncFilterInputs();
+            document.getElementById("searchInput").value = "";
+            document.getElementById("searchHint").textContent = "";
+            renderLibrary();
+        }
+
+        function openDetail(id) {
+            const resource = getResource(id);
+            if (!resource) {
+                return;
+            }
+            addRecent(id);
+            document.getElementById("detailHead").innerHTML = badgeHTML(resource) + '<h2 id="detailTitle">' + escapeHtml(resource.name) + "</h2>";
+            const tags = resource.tags.map(function (tag) {
+                return '<button class="chip" data-action="toggle-tag" data-tag="' + escapeHtml(tag) + '">' + escapeHtml(tag) + "</button>";
+            }).join(" ");
+            const broken = loadJSON(LS.broken, {});
+            const brokenReported = broken[resource.id];
+            document.getElementById("detailBody").innerHTML = [
+                '<p class="detail-desc">' + escapeHtml(resource.description) + "</p>",
+                '<div class="detail-meta">',
+                '<div><span>资源类型</span><b>' + escapeHtml(resource.type) + "</b></div>",
+                '<div><span>学习领域</span><b>' + escapeHtml(resource.category) + "</b></div>",
+                '<div><span>适合人群</span><b>' + escapeHtml(resource.audience) + "</b></div>",
+                '<div><span>学习难度</span><b>' + escapeHtml(resource.difficulty) + "</b></div>",
+                '<div><span>费用</span><b>' + escapeHtml(resource.price) + "</b></div>",
+                '<div><span>语言</span><b>' + escapeHtml(resource.language) + "</b></div>",
+                "</div>",
+                resource.reason ? '<p><b>推荐理由：</b>' + escapeHtml(resource.reason) + "</p>" : "",
+                '<div style="margin:12px 0;"><b>标签：</b> ' + tags + "</div>",
+                '<div class="detail-actions">',
+                '<a class="btn btn-primary" href="' + escapeHtml(resource.url) + '" target="_blank" rel="noopener" data-action="visit">访问资源 ↗</a>',
+                '<button class="btn btn-ghost" data-action="fav" data-resource-id="' + resource.id + '">' + (isFavorite(resource.id) ? "取消收藏" : "收藏资源") + "</button>",
+                '<button class="btn btn-ghost" data-action="broken" data-resource-id="' + resource.id + '">' + (brokenReported ? "已反馈失效" : "反馈资源失效") + "</button>",
+                "</div>",
+                '<div class="similar-title">相似资源推荐</div>',
+                '<div id="similarGrid" class="resource-grid"></div>'
+            ].join("");
+            document.getElementById("similarGrid").innerHTML = similarResources(resource).map(cardHTML).join("");
+            document.getElementById("detailModal").classList.add("show");
+            document.body.style.overflow = "hidden";
+            renderFavoritesIfActive();
+        }
+
+        function similarResources(resource) {
+            return RESOURCES.filter(function (other) {
+                return other.id !== resource.id;
+            }).map(function (other) {
+                let score = 0;
+                if (other.category === resource.category) score += 3;
+                if (other.type === resource.type) score += 2;
+                score += resource.tags.filter(function (tag) { return other.tags.indexOf(tag) !== -1; }).length;
+                return { resource: other, score: score };
+            }).filter(function (item) { return item.score > 0; })
+                .sort(function (a, b) { return b.score - a.score; })
+                .slice(0, 4)
+                .map(function (item) { return item.resource; });
+        }
+
+        function openPath(pathId, nodeIndex) {
+            const path = PATHS.find(function (item) { return item.id === pathId; });
+            if (!path || !path.nodes[nodeIndex]) {
+                return;
+            }
+            const node = path.nodes[nodeIndex];
+            const matched = RESOURCES.filter(function (resource) {
+                const haystack = resourceHaystack(resource);
+                return node.keywords.some(function (keyword) {
+                    return haystack.indexOf(normalize(keyword)) !== -1;
+                });
+            });
+            document.getElementById("pathBadges").innerHTML = '<span class="badge badge-type">' + escapeHtml(path.domain) + "</span>";
+            document.getElementById("pathTitle").textContent = path.title + " · " + node.label;
+            document.getElementById("pathDesc").textContent = "以下资源与“" + node.label + "”相关：";
+            document.getElementById("pathResources").innerHTML = matched.length ? matched.map(cardHTML).join("") : emptyHTML("该节点暂未关联到足够资源。", "可以回到资源库按关键词继续搜索。");
+            document.getElementById("pathModal").classList.add("show");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeModals() {
+            document.querySelectorAll(".modal.show").forEach(function (modal) {
+                modal.classList.remove("show");
+            });
+            document.body.style.overflow = "";
+        }
+
+        function isTyping() {
+            const active = document.activeElement;
+            return active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.tagName === "SELECT" || active.isContentEditable);
+        }
+
+        function handleCardClick(event) {
+            const actionEl = event.target.closest("[data-action]");
+            const card = event.target.closest(".resource-card");
+            if (!actionEl && card) {
+                openDetail(card.getAttribute("data-id"));
+                return;
+            }
+            if (!actionEl) {
+                return;
+            }
+            const action = actionEl.getAttribute("data-action");
+            event.preventDefault();
+            if (action === "fav") {
+                const id = actionEl.getAttribute("data-resource-id") || (card ? card.getAttribute("data-id") : "");
+                if (id) {
+                    toggleFavorite(id);
+                }
+            } else if (action === "detail") {
+                if (card) {
+                    openDetail(card.getAttribute("data-id"));
+                }
+            } else if (action === "visit") {
+                const url = actionEl.getAttribute("href");
+                if (card) {
+                    addRecent(card.getAttribute("data-id"));
+                }
+                if (url) {
+                    window.open(url, "_blank", "noopener");
+                }
+            } else if (action === "toggle-tag") {
+                const tag = actionEl.getAttribute("data-tag");
+                if (state.tags.has(tag)) {
+                    state.tags.delete(tag);
+                } else {
+                    state.tags.add(tag);
+                }
+                state.quick = "";
+                renderLibrary();
+            } else if (action === "domain") {
+                state.category = actionEl.getAttribute("data-category");
+                state.quick = "";
+                syncFilterInputs();
+                openLibrary();
+            } else if (action === "hot-search") {
+                state.query = actionEl.getAttribute("data-query");
+                document.getElementById("searchInput").value = state.query;
+                state.quick = "";
+                renderLibrary();
+                openLibrary();
+            } else if (action === "path-node") {
+                openPath(actionEl.getAttribute("data-path-id"), parseInt(actionEl.getAttribute("data-node-index"), 10));
+            } else if (action === "close-modal") {
+                closeModals();
+            } else if (action === "broken") {
+                const id = actionEl.getAttribute("data-resource-id");
+                const broken = loadJSON(LS.broken, {});
+                broken[id] = { reported: true, at: new Date().toISOString() };
+                saveJSON(LS.broken, broken);
+                actionEl.textContent = "已反馈失效";
+                toast("感谢反馈，我们会持续维护资源质量");
+            }
+        }
+
+        function initTheme() {
+            const saved = loadJSON(LS.theme, "");
+            const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+            const theme = saved || (prefersDark ? "dark" : "light");
+            document.documentElement.setAttribute("data-theme", theme);
+            document.getElementById("themeToggle").textContent = theme === "dark" ? "☀️" : "🌙";
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+            const next = current === "dark" ? "light" : "dark";
+            document.documentElement.setAttribute("data-theme", next);
+            saveJSON(LS.theme, next);
+            document.getElementById("themeToggle").textContent = next === "dark" ? "☀️" : "🌙";
+        }
+
+        function loadSubmittedResources() {
+            const submitted = loadJSON(LS.submitted, []);
+            submitted.forEach(function (item) {
+                RESOURCES.push({
+                    id: "user-" + item.id,
+                    name: item.name,
+                    url: item.url,
+                    description: item.description,
+                    category: item.category,
+                    type: item.type,
+                    level: item.level,
+                    language: item.language,
+                    price: item.price,
+                    tags: item.tags || [],
+                    official: false,
+                    recommended: false,
+                    reason: item.reason || "",
+                    audience: item.audience || "通用",
+                    difficulty: item.difficulty || "入门",
+                    added: item.added || new Date().toISOString().slice(0, 10),
+                    source: "user"
+                });
+            });
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+            const name = document.getElementById("subName").value.trim();
+            const url = document.getElementById("subUrl").value.trim();
+            const description = document.getElementById("subDesc").value.trim();
+            if (!name || !url || !description) {
+                toast("请填写必填项");
+                return;
+            }
+            const submitted = loadJSON(LS.submitted, []);
+            const id = "u" + Date.now();
+            submitted.unshift({
+                id: id,
+                name: name,
+                url: url,
+                description: description,
+                category: document.getElementById("subCategory").value,
+                type: document.getElementById("subType").value,
+                level: document.getElementById("subLevel").value,
+                language: document.getElementById("subLanguage").value,
+                price: document.getElementById("subPrice").value,
+                tags: document.getElementById("subTags").value.split(/[,，\s]+/).map(function (tag) { return tag.trim(); }).filter(Boolean),
+                reason: document.getElementById("subReason").value.trim()
+            });
+            saveJSON(LS.submitted, submitted);
+            RESOURCES.push({
+                id: "user-" + id,
+                name: name,
+                url: url,
+                description: description,
+                category: document.getElementById("subCategory").value,
+                type: document.getElementById("subType").value,
+                level: document.getElementById("subLevel").value,
+                language: document.getElementById("subLanguage").value,
+                price: document.getElementById("subPrice").value,
+                tags: document.getElementById("subTags").value.split(/[,，\s]+/).map(function (tag) { return tag.trim(); }).filter(Boolean),
+                official: false,
+                recommended: false,
+                reason: document.getElementById("subReason").value.trim(),
+                audience: "通用",
+                difficulty: "入门",
+                added: new Date().toISOString().slice(0, 10),
+                source: "user"
+            });
+            document.getElementById("submitForm").reset();
+            document.getElementById("submitMessage").textContent = "已提交并保存在本地资源库";
+            renderAllHome();
+            renderLibrary();
+            renderSubmitted();
+            renderFilters();
+            toast("推荐资源已保存");
+        }
+
+        function bindEvents() {
+            document.addEventListener("click", handleCardClick);
+
+            document.querySelectorAll("[data-section-link]").forEach(function (el) {
+                el.addEventListener("click", function () {
+                    showSection(el.getAttribute("data-section-link"));
+                });
+            });
+
+            document.querySelectorAll("[data-quick]").forEach(function (el) {
+                el.addEventListener("click", function () {
+                    applyQuickFilter(el.getAttribute("data-quick"));
+                });
+            });
+
+            document.getElementById("themeToggle").addEventListener("click", toggleTheme);
+            document.getElementById("donateBtn").addEventListener("click", function () {
+                document.getElementById("donateModal").classList.add("show");
+                document.body.style.overflow = "hidden";
+            });
+
+            document.getElementById("filterCategory").addEventListener("change", function (event) {
+                state.category = event.target.value;
+                state.quick = "";
+                renderLibrary();
+            });
+            document.getElementById("filterType").addEventListener("change", function (event) {
+                state.type = event.target.value;
+                state.quick = "";
+                renderLibrary();
+            });
+            document.getElementById("filterLevel").addEventListener("change", function (event) {
+                state.level = event.target.value;
+                state.quick = "";
+                renderLibrary();
+            });
+            document.getElementById("filterPrice").addEventListener("change", function (event) {
+                state.price = event.target.value;
+                state.quick = "";
+                renderLibrary();
+            });
+            document.getElementById("filterLanguage").addEventListener("change", function (event) {
+                state.language = event.target.value;
+                state.quick = "";
+                renderLibrary();
+            });
+            document.getElementById("sortSelect").addEventListener("change", function (event) {
+                state.sort = event.target.value;
+                renderLibrary();
+            });
+            document.getElementById("resetFilters").addEventListener("click", resetFilters);
+
+            let searchTimer;
+            document.getElementById("searchInput").addEventListener("input", function (event) {
+                clearTimeout(searchTimer);
+                const value = event.target.value;
+                searchTimer = setTimeout(function () {
+                    state.query = value;
+                    state.quick = "";
+                    const filtered = getFilteredResources();
+                    document.getElementById("searchHint").textContent = filtered.length ? "找到 " + filtered.length + " 个匹配资源" : "暂无匹配资源";
+                    if (state.section === "library") {
+                        renderLibrary();
+                    }
+                }, 160);
+            });
+            document.getElementById("searchInput").addEventListener("keydown", function (event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    state.query = event.target.value;
+                    renderLibrary();
+                    openLibrary();
+                }
+            });
+
+            document.addEventListener("keydown", function (event) {
+                if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+                    event.preventDefault();
+                    document.getElementById("searchInput").focus();
+                } else if (event.key === "/" && !isTyping()) {
+                    event.preventDefault();
+                    document.getElementById("searchInput").focus();
+                } else if (event.key === "Escape") {
+                    closeModals();
+                }
+            });
+
+            document.getElementById("clearRecent").addEventListener("click", function () {
+                saveJSON(LS.recent, []);
+                renderFavorites();
+                toast("浏览记录已清空");
+            });
+
+            document.getElementById("submitForm").addEventListener("submit", handleSubmit);
+
+            window.addEventListener("scroll", function () {
+                const backTop = document.getElementById("backTop");
+                if (window.scrollY > 560) {
+                    backTop.classList.add("show");
+                } else {
+                    backTop.classList.remove("show");
+                }
+            }, { passive: true });
+
+            document.getElementById("backTop").addEventListener("click", function () {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            });
+        }
+
+        function init() {
+            loadSubmittedResources();
+            initTheme();
+            renderFilters();
+            renderAllHome();
+            renderLibrary();
+            renderSubmitted();
+            bindEvents();
+        }
+
+        document.addEventListener("DOMContentLoaded", init);
+    }());
+    </script>
 </body>
 </html>
